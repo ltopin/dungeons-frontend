@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vscode/*
+!.vscode/extensions.json
+coverage
+*.tsbuildinfo
+
+# Binário e dados baixados localmente pela skill impeccable (não versionar)
+.claude/skills/impeccable/scripts/bin/
+.claude/skills/impeccable/scripts/data/font-index.json

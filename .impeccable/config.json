@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-09-07T12:35:17.714Z",
+        "reason": "Claude judgment: .ficha-sheet .masthead (L234) is pre-existing shipped incumbent design predating this session; .auth-screen__panel (L79) deliberately replicates that exact masthead treatment (border-top gold accent + border-radius) to bring the ficha's identity to the login/cadastro screens, per the critique's P1 fix. Both are intentional, not oversights; not user-confirmed."
+      }
+    ]
+  }
+}

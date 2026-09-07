@@ -1,0 +1,1061 @@
+:root {
+  color-scheme: light dark;
+  font-family: 'Garamond', Georgia, serif;
+}
+
+body {
+  margin: 0;
+  background: #1c140f;
+  color: #f3e6d0;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.save-status {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.save-status--erro {
+  color: #ff8a8a;
+}
+
+.save-status--salvo {
+  color: #9fdc9f;
+}
+
+.save-status__retry {
+  margin-left: 0.5rem;
+}
+
+.welcome-banner {
+  margin: 0 0 1rem;
+  padding: 10px 14px;
+  border: 1px solid #3a6b3a;
+  border-radius: 4px;
+  background: rgba(159, 220, 159, 0.12);
+  color: #9fdc9f;
+  font-size: 0.9rem;
+}
+
+/* ============================================================
+   CAMPANHAS — lista de campanhas, mesma família visual do
+   "Livro de Ligações" (tokens de tomo de couro e selos
+   dourados), num tratamento de lista/painel em vez de ficha.
+   Escopado em .campaigns-screen para não afetar as demais telas.
+   ============================================================ */
+
+.campaigns-screen {
+  --bg: #16120e;
+  --panel: #211a14;
+  --panel-2: #2a2118;
+  --line: #4a3a24;
+  --gold: #b8903f;
+  --gold-bright: #e0b968;
+  --parchment: #ece0c6;
+  --blue: #3a5872;
+  --blue-bright: #5c85a6;
+  --text-dim: #9a8c72;
+  --text-dark: #211a14;
+  --danger: #ff8a8a;
+}
+
+.campaigns-screen__masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.campaigns-screen__masthead h1 {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: var(--parchment);
+}
+
+.campaigns-screen__logout {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.campaigns-screen__logout:hover {
+  color: var(--gold-bright);
+}
+
+.campaigns-screen__logout:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.campaigns-screen__panel {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.campaigns-screen__panel-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.campaigns-screen__section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  margin: 4px 0 12px;
+}
+
+.campaigns-screen__primary-action {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  background: var(--gold);
+  color: #1a1410;
+  border-radius: 4px;
+  padding: 8px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.campaigns-screen__primary-action:hover {
+  background: var(--gold-bright);
+}
+
+.campaigns-screen__primary-action:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.campaigns-screen__hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin: 0 0 12px;
+}
+
+.campaigns-screen__empty {
+  font-size: 14px;
+  color: var(--parchment);
+  margin: 0;
+}
+
+.campaigns-screen__empty a {
+  color: var(--gold-bright);
+}
+
+.campaigns-screen__error {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  background: rgba(255, 138, 138, 0.1);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.campaigns-screen__retry {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.campaigns-screen__retry:hover {
+  background: rgba(255, 138, 138, 0.15);
+}
+
+.campaigns-screen__retry:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.campaigns-screen__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.campaigns-screen__campaign-link {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.campaigns-screen__campaign-link:hover {
+  border-color: var(--gold);
+}
+
+.campaigns-screen__campaign-link:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+.campaigns-screen__entry-name {
+  font-size: 14px;
+  color: var(--parchment);
+  overflow-wrap: break-word;
+}
+
+.campaigns-screen__role-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.campaigns-screen__role-pill--mestre {
+  background: var(--gold);
+  color: #1a1410;
+}
+
+.campaigns-screen__role-pill--jogador {
+  background: var(--blue);
+  color: var(--parchment);
+}
+
+.campaigns-screen__list--open li {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 14px;
+}
+
+.campaigns-screen__list--open .campaigns-screen__join {
+  flex-shrink: 0;
+}
+
+.campaigns-screen__entry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 240px;
+}
+
+.campaigns-screen__entry-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  overflow-wrap: break-word;
+}
+
+.campaigns-screen__entry-meta--descricao {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.campaigns-screen__join {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  background: var(--gold);
+  color: #1a1410;
+  border: none;
+  border-radius: 4px;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.campaigns-screen__join:hover:not(:disabled) {
+  background: var(--gold-bright);
+}
+
+.campaigns-screen__join:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.campaigns-screen__join:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   AUTENTICAÇÃO — tema compartilhado derivado do "Livro de
+   Ligações" (login/cadastro usam os mesmos tokens de tomo de
+   couro e selos dourados da ficha, num painel mais simples).
+   Escopado em .auth-screen para não afetar as demais telas.
+   ============================================================ */
+
+.auth-screen {
+  --bg: #16120e;
+  --panel: #211a14;
+  --panel-2: #2a2118;
+  --line: #4a3a24;
+  --gold: #b8903f;
+  --gold-bright: #e0b968;
+  --parchment: #ece0c6;
+  --text-dim: #9a8c72;
+  --text-dark: #211a14;
+  --danger: #ff8a8a;
+  display: flex;
+  justify-content: center;
+  padding-top: clamp(2rem, 8vh, 5rem);
+}
+
+.auth-screen__panel {
+  width: min(100%, 380px);
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 28px 26px;
+}
+
+.auth-screen__brand {
+  margin: 0 0 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+}
+
+.auth-screen__panel h1 {
+  margin: 0 0 20px;
+  font-size: 28px;
+  color: var(--parchment);
+}
+
+.auth-screen__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.auth-screen__field label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+}
+
+.auth-screen__field input,
+.auth-screen__field textarea {
+  font-family: inherit;
+  font-size: 15px;
+  background: var(--parchment);
+  color: var(--text-dark);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 9px 11px;
+}
+
+.auth-screen__field textarea {
+  resize: vertical;
+}
+
+.auth-screen__field input:focus-visible,
+.auth-screen__field textarea:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 1px;
+}
+
+.auth-screen__hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.auth-screen__error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  background: rgba(255, 138, 138, 0.1);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.auth-screen__error:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.auth-screen__submit {
+  width: 100%;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  background: var(--gold);
+  color: #1a1410;
+  border: none;
+  border-radius: 4px;
+  padding: 11px;
+  cursor: pointer;
+}
+
+.auth-screen__submit:hover:not(:disabled) {
+  background: var(--gold-bright);
+}
+
+.auth-screen__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-screen__switch {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.auth-screen__switch a {
+  color: var(--gold-bright);
+}
+
+/* ============================================================
+   FICHA — tema "Livro de Ligações": tomo de couro escuro, selos
+   dourados para os atributos, réguas em fio de ouro.
+   Escopado em .ficha-sheet para não afetar as demais telas.
+   ============================================================ */
+
+.ficha-sheet {
+  --bg: #16120e;
+  --panel: #211a14;
+  --panel-2: #2a2118;
+  --line: #4a3a24;
+  --gold: #b8903f;
+  --gold-bright: #e0b968;
+  --parchment: #ece0c6;
+  --blood: #8a2e34;
+  --blood-bright: #b8474e;
+  --blue: #3a5872;
+  --blue-bright: #5c85a6;
+  --text: #ece0c6;
+  --text-dim: #9a8c72;
+  --text-dark: #211a14;
+  font-family: 'Garamond', Georgia, serif;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ficha-sheet * {
+  box-sizing: border-box;
+}
+
+.ficha-sheet input,
+.ficha-sheet select,
+.ficha-sheet textarea {
+  font-family: inherit;
+  background: var(--parchment);
+  color: var(--text-dark);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 5px 7px;
+  font-size: 13px;
+}
+
+.ficha-sheet input:focus,
+.ficha-sheet select:focus,
+.ficha-sheet textarea:focus {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 1px;
+}
+
+/* Masthead */
+.ficha-sheet .masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.ficha-sheet .ro-back-link {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ficha-sheet .ro-back-link:hover {
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .ro-back-link:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.ficha-sheet .eyebrow {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+
+/* Tabs */
+.ficha-sheet .tabbar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--line);
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.ficha-sheet .tab {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  background: var(--panel);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  padding: 8px 16px;
+  border-radius: 5px 5px 0 0;
+  cursor: pointer;
+}
+
+.ficha-sheet .tab[aria-current='true'] {
+  background: var(--gold);
+  color: #1a1410;
+  font-weight: 700;
+}
+
+/* Layout */
+.ficha-sheet .grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ficha-sheet .grid-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ficha-sheet .panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.ficha-sheet .section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+  margin: 4px 0 12px;
+}
+
+.ficha-sheet .section-title:not(:first-child) {
+  margin-top: 20px;
+}
+
+.ficha-sheet .section-title.accent-blood {
+  color: var(--blood-bright);
+}
+
+.ficha-sheet .section-title.accent-blue {
+  color: var(--blue-bright);
+}
+
+.ficha-sheet .hint {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: -6px 0 12px;
+}
+
+/* Fields */
+.ficha-sheet .field-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.ficha-sheet .field-grid.six {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+@media (max-width: 700px) {
+  .ficha-sheet .field-grid,
+  .ficha-sheet .field-grid.six {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.ficha-sheet .field-grid label,
+.ficha-sheet form label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.ficha-sheet .field-grid label > span:first-child,
+.ficha-sheet .field-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.ficha-sheet .numbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.ficha-sheet .numbox-input {
+  text-align: center;
+}
+
+.ficha-sheet .numbox-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Ability seals */
+.ficha-sheet .seals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.ficha-sheet .seal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: text;
+}
+
+.ficha-sheet .seal-hex {
+  width: 92px;
+  height: 100px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: linear-gradient(160deg, var(--panel-2), var(--bg));
+  border: 2px solid var(--gold);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.ficha-sheet .seal-abbr {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--gold-bright);
+  letter-spacing: 0.06em;
+}
+
+.ficha-sheet .seal-hex input {
+  width: 46px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.ficha-sheet .seal-label-text {
+  font-size: 9px;
+  color: var(--text-dim);
+}
+
+.ficha-sheet .seal-mod {
+  margin-top: -14px;
+  background: var(--gold);
+  color: #1a1410;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg);
+}
+
+/* Dials */
+.ficha-sheet .dial-row {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 14px;
+  flex-wrap: wrap;
+}
+
+.ficha-sheet .dial-row.three-big .dial {
+  flex: 1;
+  min-width: 100px;
+}
+
+.ficha-sheet .dial {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  text-align: center;
+  min-width: 90px;
+}
+
+.ficha-sheet .dial-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .dial-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.ficha-sheet .dial-sub {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.ficha-sheet .dial-input {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--gold-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  padding: 0;
+}
+
+/* Saves */
+.ficha-sheet .save-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.ficha-sheet .save-name {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  width: 90px;
+  color: var(--text);
+}
+
+.ficha-sheet .save-total {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--blue);
+  color: var(--parchment);
+  border-radius: 4px;
+  padding: 2px 10px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.ficha-sheet .save-eq,
+.ficha-sheet .save-plus {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+/* Lists / cards */
+.ficha-sheet .list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ficha-sheet .list-section {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ficha-sheet .list-section li {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ficha-sheet .add-btn {
+  align-self: start;
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--gold-bright);
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 6px;
+  font-family: 'Cinzel', serif;
+}
+
+.ficha-sheet .add-btn:hover {
+  border-color: var(--gold);
+}
+
+.ficha-sheet .icon-btn {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.ficha-sheet .icon-btn.danger:hover {
+  background: var(--blood);
+  color: var(--parchment);
+  border-color: var(--blood);
+}
+
+.ficha-sheet .star-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--line);
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ficha-sheet .star-toggle::before {
+  content: '★';
+}
+
+.ficha-sheet .star-toggle:checked {
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .weight-total,
+.ficha-sheet .spell-dc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .currency-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+/* Spells */
+.ficha-sheet .spell-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ficha-sheet .spell-level-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.ficha-sheet .spell-level-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ficha-sheet .spell-level-badge {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 16px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: var(--parchment);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--blue-bright);
+}
+
+.ficha-sheet .spell-entries {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ficha-sheet .spell-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ficha-sheet .notes-area {
+  width: 100%;
+  min-height: 360px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   FICHA — visualização somente leitura (mestre observando a
+   ficha de um jogador). Reaproveita a mesma família visual do
+   editor, trocando inputs por valores estáticos.
+   ============================================================ */
+
+.ficha-sheet .seal-hex .ro-value {
+  display: inline-block;
+  width: 46px;
+  text-align: center;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ficha-sheet .field-grid .ro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.ficha-sheet .ro-field-value {
+  color: var(--text);
+  min-height: 1.4em;
+}
+
+.ficha-sheet .numbox .ro-value {
+  display: inline-block;
+  min-width: 46px;
+  text-align: center;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+.ficha-sheet .ro-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--line);
+  font-size: 16px;
+}
+
+.ficha-sheet .ro-star::before {
+  content: '★';
+}
+
+.ficha-sheet .ro-star.is-active {
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .ro-notes {
+  white-space: pre-wrap;
+  color: var(--text);
+}
+
+.ficha-sheet .ro-notes--vazio {
+  color: var(--text-dim);
+  font-style: italic;
+}
