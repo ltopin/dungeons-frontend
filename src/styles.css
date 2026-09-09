@@ -1526,7 +1526,6 @@ main {
   gap: 6px;
 }
 
-.ficha-sheet .wizard-skill-row,
 .ficha-sheet .wizard-feat-row,
 .ficha-sheet .wizard-spell-row,
 .ficha-sheet .wizard-shop-row {
@@ -1534,6 +1533,19 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.ficha-sheet .wizard-skill-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(148px, auto) 82px auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 4px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: 5px;
@@ -1600,6 +1612,24 @@ main {
   font-size: 12px;
   color: var(--gold-bright);
   white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .ficha-sheet .wizard-skill-row {
+    grid-template-columns: 1fr auto;
+    row-gap: 8px;
+  }
+
+  .ficha-sheet .wizard-skill-nome {
+    grid-column: 1 / -1;
+  }
+
+  .ficha-sheet .wizard-skill-total {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
 }
 
 .ficha-sheet .wizard-spell-group h3,
