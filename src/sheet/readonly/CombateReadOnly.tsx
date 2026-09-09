@@ -15,7 +15,6 @@ const AC_MANUAL_FIELDS: Array<{ key: keyof FichaCombate; label: string }> = [
 ]
 
 const MISC_FIELDS: Array<{ key: keyof FichaCombate; label: string }> = [
-  { key: 'iniciativaOutros', label: 'iniciativa (outros)' },
   { key: 'agarraoOutros', label: 'agarrão (outros)' },
 ]
 
@@ -144,6 +143,7 @@ export function CombateReadOnly({ combate, geral }: { combate: FichaCombate; ger
           <RoNumBox key={key} label={label} value={combate[key] as number} />
         ))}
       </div>
+      {roDerivedRow('Iniciativa', combate.iniciativaTotal, combate.iniciativaOutros)}
       {roDerivedRow('Corpo a corpo', corpoACorpoTotal, combate.corpoACorpoOutros)}
       {roDerivedRow('À distância', distanciaTotal, combate.distanciaOutros)}
 

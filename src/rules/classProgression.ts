@@ -11,7 +11,7 @@ export function baseDeSalvaNoNivel1(progressao: ProgressaoSalva): number {
   return progressao === 'boa' ? 2 : 0
 }
 
-/** Máximo de graduações em uma perícia no 1º nível: 4 se de classe, 2 se não. */
-export function graduacoesMaximasNivel1(deClasse: boolean): number {
-  return deClasse ? 4 : 2
+/** Máximo de graduações em uma perícia no 1º nível: 4, de classe ou não (o custo diferenciado já desincentiva perícia fora de classe). */
+export function graduacoesMaximasNivel1(_deClasse: boolean): number {
+  return 4
 }

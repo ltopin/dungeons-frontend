@@ -79,6 +79,37 @@ const CLASSES_FAKE: CompendioClasse[] = [
   },
 ]
 
+const RACAS_EXTRA_FAKE: CompendioRaca[] = [
+  ...RACAS_FAKE,
+  {
+    id: 'raca-anao',
+    nome: 'Anão',
+    ajustes_atributo: { con: 2, cha: -2 },
+    tamanho: 'Médio',
+    deslocamento: 20,
+    tipo: 'humanoide (anão)',
+    tracos: [{ nome: 'Visão no Escuro', descricao: 'Enxerga no escuro até 18 metros.' }],
+    idiomas: ['Comum', 'Anão'],
+  },
+]
+
+const CLASSES_EXTRA_FAKE: CompendioClasse[] = [
+  ...CLASSES_FAKE,
+  {
+    id: 'classe-ladino',
+    nome: 'Ladino',
+    dado_vida: 'd8',
+    bab_progressao: 'media',
+    salvaguardas_progressao: { fortitude: 'ruim', reflexos: 'boa', vontade: 'ruim' },
+    pericias_de_classe: ['Furtividade'],
+    pontos_pericia_por_nivel: 8,
+    conjurador: false,
+    atributo_conjuracao: null,
+    magias_por_dia: [],
+    caracteristicas: [{ nivel: 1, nome: 'Ataque Furtivo', descricao: '+1d6 de dano quando desprevenido.' }],
+  },
+]
+
 const TALENTOS_FAKE: CompendioTalento[] = [
   {
     id: 'talento-investida-poderosa',
@@ -244,5 +275,88 @@ describe('trilha de criação de personagem', () => {
 
     await user.click(escolherBtn)
     expect(await within(linhaLiberada).findByRole('button', { name: 'Remover' })).toBeInTheDocument()
+  })
+})
+
+describe('gravação automática de qualidades especiais de raça e classe', () => {
+  it('grava os traços da raça e as características de classe de nível 1 ao confirmar', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha/criar']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    await user.type(screen.getByLabelText('Nome do personagem'), 'Thorin')
+    await user.click(screen.getByRole('button', { name: /Humano/ }))
+    await user.click(screen.getByRole('button', { name: /Guerreiro/ }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar raça e classe' }))
+
+    await screen.findByRole('heading', { name: 'Atributos' })
+
+    const chamadasTalentos = fichasMock.criarLinha.mock.calls.filter(([, secao]) => secao === 'talentos')
+    const nomesGravados = chamadasTalentos.map(([, , dados]) => (dados as { nome: string }).nome).sort()
+    expect(nomesGravados).toEqual(['Bônus de Atributo', 'Talento de Combate Bônus', 'Talentoso'].sort())
+    expect(
+      chamadasTalentos.every(([, , dados]) => (dados as { categoria: string }).categoria === 'qualidade_especial'),
+    ).toBe(true)
+  })
+
+  it('confirmar novamente sem trocar raça/classe não duplica as qualidades já gravadas', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha/criar']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    await user.type(screen.getByLabelText('Nome do personagem'), 'Thorin')
+    await user.click(screen.getByRole('button', { name: /Humano/ }))
+    await user.click(screen.getByRole('button', { name: /Guerreiro/ }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar raça e classe' }))
+    await screen.findByRole('heading', { name: 'Atributos' })
+
+    await user.click(screen.getByRole('button', { name: /Raça e Classe/ }))
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    await user.click(screen.getByRole('button', { name: 'Confirmar raça e classe' }))
+    await screen.findByRole('heading', { name: 'Atributos' })
+
+    const chamadasTalentos = fichasMock.criarLinha.mock.calls.filter(([, secao]) => secao === 'talentos')
+    expect(chamadasTalentos).toHaveLength(3)
+  })
+
+  it('trocar de raça/classe e confirmar novamente soma as novas qualidades sem remover as antigas', async () => {
+    compendioMock.listarRacasCompendio.mockResolvedValue(RACAS_EXTRA_FAKE)
+    compendioMock.listarClassesCompendio.mockResolvedValue(CLASSES_EXTRA_FAKE)
+
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha/criar']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    await user.type(screen.getByLabelText('Nome do personagem'), 'Thorin')
+    await user.click(screen.getByRole('button', { name: /Humano/ }))
+    await user.click(screen.getByRole('button', { name: /Guerreiro/ }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar raça e classe' }))
+    await screen.findByRole('heading', { name: 'Atributos' })
+
+    await user.click(screen.getByRole('button', { name: /Raça e Classe/ }))
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    await user.click(screen.getByRole('button', { name: /Anão/ }))
+    await user.click(screen.getByRole('button', { name: /Ladino/ }))
+    await user.click(screen.getByRole('button', { name: 'Confirmar raça e classe' }))
+    await screen.findByRole('heading', { name: 'Atributos' })
+
+    const chamadasTalentos = fichasMock.criarLinha.mock.calls.filter(([, secao]) => secao === 'talentos')
+    const nomesGravados = chamadasTalentos.map(([, , dados]) => (dados as { nome: string }).nome).sort()
+    expect(nomesGravados).toEqual(
+      ['Bônus de Atributo', 'Talentoso', 'Talento de Combate Bônus', 'Visão no Escuro', 'Ataque Furtivo'].sort(),
+    )
+    expect(fichasMock.removerLinha).not.toHaveBeenCalled()
   })
 })

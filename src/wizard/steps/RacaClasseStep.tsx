@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import type { FichaGeral } from '../../api/types'
+import type { FichaGeral, FichaTalento } from '../../api/types'
 import type { CompendioClasse, CompendioRaca } from '../../api/compendioTypes'
 import { useSectionAutosave } from '../../sheet/useSectionAutosave'
+import { useListSection } from '../../sheet/useListSection'
 import { SaveStatusBadge } from '../../sheet/SaveStatusBadge'
 import { Field, SectionTitle } from '../../sheet/theme'
 
 export function RacaClasseStep({
   fichaId,
   geral,
+  talentos,
   racas,
   classes,
   racaId,
@@ -15,10 +17,12 @@ export function RacaClasseStep({
   onEscolha,
   onChange,
   onSaved,
+  onItemsChange,
   onConcluir,
 }: {
   fichaId: string
   geral: FichaGeral
+  talentos: FichaTalento[]
   racas: CompendioRaca[]
   classes: CompendioClasse[]
   racaId: string | undefined
@@ -26,6 +30,7 @@ export function RacaClasseStep({
   onEscolha: (racaId: string | undefined, classeId: string | undefined) => void
   onChange?: (geral: FichaGeral) => void
   onSaved?: (geral: FichaGeral) => void
+  onItemsChange?: (talentos: FichaTalento[]) => void
   onConcluir: () => void
 }) {
   const { value, updateField, status, retry, flush } = useSectionAutosave<FichaGeral>(
@@ -35,6 +40,13 @@ export function RacaClasseStep({
     undefined,
     onSaved,
   )
+  const { items: talentosAtuais, addItem } = useListSection<FichaTalento>(
+    fichaId,
+    'talentos',
+    talentos,
+    undefined,
+    onItemsChange,
+  )
   const [confirmando, setConfirmando] = useState(false)
 
   useEffect(() => {
@@ -42,10 +54,30 @@ export function RacaClasseStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
+  const raca = racas.find((r) => r.id === racaId)
+  const classe = classes.find((c) => c.id === classeId)
+  const podeConcluir = Boolean(racaId && classeId && (value.nomePersonagem ?? '').trim())
+  const caracteristicasNivel1 = classe?.caracteristicas.filter((c) => c.nivel === 1) ?? []
+
   async function confirmar() {
     setConfirmando(true)
     try {
       await flush()
+      const candidatos = [
+        ...(raca?.tracos ?? []).map((t) => ({ nome: t.nome, descricao: t.descricao })),
+        ...caracteristicasNivel1.map((c) => ({ nome: c.nome, descricao: c.descricao })),
+      ]
+      const nomesExistentes = new Set(talentosAtuais.map((t) => t.nome.toLowerCase()))
+      const vistos = new Set<string>()
+      const paraGravar = candidatos.filter(({ nome }) => {
+        const chave = nome.toLowerCase()
+        if (nomesExistentes.has(chave) || vistos.has(chave)) return false
+        vistos.add(chave)
+        return true
+      })
+      for (const { nome, descricao } of paraGravar) {
+        await addItem({ nome, descricao, categoria: 'qualidade_especial' })
+      }
       onConcluir()
     } catch {
       // erro já sinalizado pelo SaveStatusBadge; permanece na etapa
@@ -53,11 +85,6 @@ export function RacaClasseStep({
       setConfirmando(false)
     }
   }
-
-  const raca = racas.find((r) => r.id === racaId)
-  const classe = classes.find((c) => c.id === classeId)
-  const podeConcluir = Boolean(racaId && classeId && (value.nomePersonagem ?? '').trim())
-  const caracteristicasNivel1 = classe?.caracteristicas.filter((c) => c.nivel === 1) ?? []
 
   return (
     <section aria-label="Raça e Classe" className="wizard-step">

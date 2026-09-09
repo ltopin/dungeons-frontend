@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { armorClass, cmb, cmd, meleeAttackBonus, rangedAttackBonus, savingThrow } from './combat'
+import { armorClass, cmb, cmd, initiative, meleeAttackBonus, rangedAttackBonus, savingThrow } from './combat'
 
 describe('armorClass', () => {
   it('CA total com todos os componentes', () => {
@@ -63,5 +63,15 @@ describe('cmb / cmd', () => {
 
   it('CMD de um personagem Médio', () => {
     expect(cmd({ bab: 6, forcaMod: 4, destrezaMod: 2, tamanhoMod: 0, outros: 0 })).toBe(22)
+  })
+})
+
+describe('initiative', () => {
+  it('iniciativa com modificador positivo de destreza', () => {
+    expect(initiative({ destrezaMod: 3, outros: 1 })).toBe(4)
+  })
+
+  it('iniciativa com modificador negativo de destreza', () => {
+    expect(initiative({ destrezaMod: -1, outros: 0 })).toBe(-1)
   })
 })

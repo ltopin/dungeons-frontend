@@ -4,7 +4,7 @@ import { useSectionAutosave } from '../useSectionAutosave'
 import { SaveStatusBadge } from '../SaveStatusBadge'
 import { SectionTitle, NumBox, Dial, Field } from '../theme'
 import { attributeModifier, sizeModifier } from '../../rules/attributeMods'
-import { armorClass, cmb, cmd, meleeAttackBonus, rangedAttackBonus, savingThrow } from '../../rules/combat'
+import { armorClass, cmb, cmd, initiative, meleeAttackBonus, rangedAttackBonus, savingThrow } from '../../rules/combat'
 
 const fmt = (m: number) => (m >= 0 ? `+${m}` : `${m}`)
 
@@ -17,7 +17,6 @@ const AC_MANUAL_FIELDS: Array<{ key: keyof FichaCombate; label: string }> = [
 ]
 
 const MISC_FIELDS: Array<{ key: keyof FichaCombate; label: string }> = [
-  { key: 'iniciativaOutros', label: 'iniciativa (outros)' },
   { key: 'agarraoOutros', label: 'agarrão (outros)' },
 ]
 
@@ -93,6 +92,7 @@ export function CombateTab({
         caSurpreendido: ca.surpreendido,
         cmbTotal: cmb({ bab: v.bab, forcaMod, tamanhoMod, outros: v.cmbOutros }),
         cmdTotal: cmd({ bab: v.bab, forcaMod, destrezaMod, tamanhoMod, outros: v.cmdOutros }),
+        iniciativaTotal: initiative({ destrezaMod, outros: v.iniciativaOutros }),
       }
     },
     onSaved,
@@ -138,6 +138,8 @@ export function CombateTab({
 
   const cmbTotal = cmb({ bab: value.bab, forcaMod, tamanhoMod, outros: value.cmbOutros })
   const cmdTotal = cmd({ bab: value.bab, forcaMod, destrezaMod, tamanhoMod, outros: value.cmdOutros })
+
+  const iniciativaTotal = initiative({ destrezaMod, outros: value.iniciativaOutros })
 
   return (
     <section aria-label="Combate" className="panel">
@@ -239,6 +241,7 @@ export function CombateTab({
           <NumBox key={key} label={label} value={value[key] as number} onChange={setNum(key)} />
         ))}
       </div>
+      {derivedRow('Iniciativa', iniciativaTotal, value.iniciativaOutros, setNum('iniciativaOutros'))}
       {derivedRow('Corpo a corpo', corpoACorpoTotal, value.corpoACorpoOutros, setNum('corpoACorpoOutros'))}
       {derivedRow('À distância', distanciaTotal, value.distanciaOutros, setNum('distanciaOutros'))}
 

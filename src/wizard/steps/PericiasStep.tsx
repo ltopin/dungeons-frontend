@@ -3,7 +3,7 @@ import type { FichaGeral, FichaPericia } from '../../api/types'
 import type { CompendioClasse, CompendioPericia, CompendioRaca } from '../../api/compendioTypes'
 import { useListSection } from '../../sheet/useListSection'
 import { SaveStatusBadge } from '../../sheet/SaveStatusBadge'
-import { atributoScore } from '../../sheet/abilityMod'
+import { atributoScore, fmt } from '../../sheet/abilityMod'
 import { attributeModifier } from '../../rules/attributeMods'
 import { skillTotal } from '../../rules/skills'
 import { graduacoesMaximasNivel1 } from '../../rules/classProgression'
@@ -106,6 +106,22 @@ export function PericiasStep({
     }
   }
 
+  function definirOutros(skill: CompendioPericia, valor: number) {
+    const deClasse = classe?.pericias_de_classe.includes(skill.nome) ?? false
+    const existente = itemPorNome.get(skill.nome)
+    if (existente) {
+      updateItemField(existente.id, 'outros', valor)
+    } else {
+      addItem({
+        nome: skill.nome,
+        atributo: (skill.atributo ?? '').toUpperCase(),
+        periciaDeClasse: deClasse,
+        graduacoes: 0,
+        outros: valor,
+      })
+    }
+  }
+
   return (
     <section aria-label="Perícias" className="wizard-step">
       <div className="section-header">
@@ -124,6 +140,13 @@ export function PericiasStep({
           const max = graduacoesMaximasNivel1(deClasse)
           const item = itemPorNome.get(skill.nome)
           const graduacoes = item?.graduacoes ?? 0
+          const outros = item?.outros ?? 0
+          const total = skillTotal({
+            graduacoes,
+            atributoMod: attributeModifier(atributoScore(geral, skill.atributo)),
+            periciaDeClasse: deClasse,
+            outros,
+          })
           return (
             <li key={skill.id} className="wizard-skill-row">
               <span className="wizard-skill-nome">
@@ -147,6 +170,18 @@ export function PericiasStep({
                 </button>
                 <span className="hint">máx {max}</span>
               </div>
+              <label className="wizard-skill-outros">
+                <span className="hint">Outros</span>
+                <input
+                  type="number"
+                  aria-label={`Outros em ${skill.nome}`}
+                  value={outros}
+                  onChange={(e) => definirOutros(skill, Number(e.target.value))}
+                />
+              </label>
+              <span className="wizard-skill-total" title="Total (graduações + atributo + classe + outros)">
+                Total {fmt(total)}
+              </span>
               {item && <SaveStatusBadge status={statusById[item.id] ?? 'idle'} onRetry={() => retryItem(item.id)} />}
             </li>
           )

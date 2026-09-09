@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { custoDaGraduacao, pontosDePericiaNivel1 } from './skillPoints'
-import { graduacoesMaximasNivel1 } from '../classProgression'
 
 describe('pontosDePericiaNivel1', () => {
   it('multiplica (base + mod. Int) por 4 no 1º nível', () => {
@@ -26,12 +25,3 @@ describe('custoDaGraduacao', () => {
   })
 })
 
-describe('graduacoesMaximasNivel1', () => {
-  it('máximo de 4 graduações em perícia de classe no 1º nível', () => {
-    expect(graduacoesMaximasNivel1(true)).toBe(4)
-  })
-
-  it('máximo de 2 graduações em perícia fora de classe no 1º nível', () => {
-    expect(graduacoesMaximasNivel1(false)).toBe(2)
-  })
-})

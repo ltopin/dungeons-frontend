@@ -63,6 +63,7 @@ export interface FichaGeral {
   idade: string
   altura: string
   peso: string
+  idiomas: string
   str: number
   dex: number
   con: number
@@ -98,6 +99,7 @@ export interface FichaCombate {
   bab: number
   deslocamento: number
   iniciativaOutros: number
+  iniciativaTotal: number
   agarraoOutros: number
   corpoACorpoOutros: number
   distanciaOutros: number

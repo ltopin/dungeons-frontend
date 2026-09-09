@@ -121,6 +121,7 @@ export function CharacterWizardPage() {
             <RacaClasseStep
               fichaId={ficha.id}
               geral={ficha.geral}
+              talentos={ficha.talentos}
               racas={compendio.racas}
               classes={compendio.classes}
               racaId={racaId}
@@ -131,6 +132,7 @@ export function CharacterWizardPage() {
               }}
               onChange={setGeralAoVivo}
               onSaved={atualizarSecaoLocal('geral')}
+              onItemsChange={atualizarSecaoLocal('talentos')}
               onConcluir={() => marcarConcluido('raca-classe', proximoPasso('raca-classe'))}
             />
           )}

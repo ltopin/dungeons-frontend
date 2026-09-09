@@ -22,6 +22,7 @@ const TEXT_FIELDS: Array<{ key: keyof FichaGeral; label: string }> = [
   { key: 'idade', label: 'Idade' },
   { key: 'altura', label: 'Altura' },
   { key: 'peso', label: 'Peso' },
+  { key: 'idiomas', label: 'Idiomas' },
 ]
 
 export function GeralTab({

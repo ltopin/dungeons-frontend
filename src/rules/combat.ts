@@ -53,3 +53,7 @@ export function cmd(input: {
 }): number {
   return 10 + input.bab + input.forcaMod + input.destrezaMod + input.tamanhoMod + input.outros
 }
+
+export function initiative(input: { destrezaMod: number; outros: number }): number {
+  return input.destrezaMod + input.outros
+}

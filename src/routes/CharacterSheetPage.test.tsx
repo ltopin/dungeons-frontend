@@ -315,6 +315,7 @@ describe('redirecionamento para a trilha de criação', () => {
           idade: '',
           altura: '',
           peso: '',
+          idiomas: '',
           str: 10,
           dex: 10,
           con: 10,
