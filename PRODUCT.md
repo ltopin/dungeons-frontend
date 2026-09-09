@@ -39,7 +39,7 @@ A tela de ficha de personagem chama-se "Livro de Ligações" e já tem um tema v
 
 ## Evidence on Hand
 
-Código-fonte existente: a tela de ficha (`CharacterSheetPage` e as abas em `src/sheet/tabs/`) tem o tema "Livro de Ligações" totalmente implementado. As telas de login, cadastro, lista de campanhas (com entrada em campanha aberta inline, sem código) e dashboard do mestre já têm o tratamento visual de tomo de couro/selos dourados aplicado — login/cadastro sob `.auth-screen`, lista de campanhas e dashboard do mestre sob `.campaigns-screen`, ambos em `src/styles.css`. Não há dados de usuário real, testemunhos ou casos de uso publicados a declarar.
+Código-fonte existente: a tela de ficha (`CharacterSheetPage` e as abas em `src/sheet/tabs/`) tem o tema "Livro de Ligações" totalmente implementado. As telas de login, cadastro, lista de campanhas (com entrada em campanha aberta inline, sem código) e dashboard do mestre já têm o tratamento visual de tomo de couro/selos dourados aplicado — login/cadastro sob `.auth-screen`, lista de campanhas e dashboard do mestre sob `.campaigns-screen`, ambos em `src/styles.css`. Isso inclui o painel de eventos de mesa (`EventosMesaPanel`) e o formulário de pedir rolagem (`PedirRolagemForm`) exibidos no dashboard do mestre: por serem componentes compartilhados com a tela de ficha (`.ficha-sheet`), precisam de regras `.campaigns-screen`-scoped próprias (adicionadas em `src/styles.css`) além das já existentes em `.ficha-sheet` — ao estender esses componentes, confirme que ambos os escopos continuam com CSS correspondente antes de assumir que o tema "já está aplicado". Não há dados de usuário real, testemunhos ou casos de uso publicados a declarar.
 
 ## Product Principles
 

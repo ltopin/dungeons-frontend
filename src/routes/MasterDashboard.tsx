@@ -17,7 +17,7 @@ export function MasterDashboard({
   const [fichas, setFichas] = useState<FichaResumo[] | null>(null)
   const [erroFichas, setErroFichas] = useState<string | null>(null)
   const erroFichasRef = useRef<HTMLParagraphElement>(null)
-  const { eventos, status, pedirRolagem } = useCampaignEvents(campanha.id)
+  const { eventos, status, pedirRolagem, reconectar } = useCampaignEvents(campanha.id)
   const [erroPedido, setErroPedido] = useState<string | null>(null)
 
   const [mundos, setMundos] = useState<Mundo[]>([])
@@ -116,7 +116,7 @@ export function MasterDashboard({
             </select>
             <button
               type="button"
-              className="campaigns-screen__retry"
+              className="campaigns-screen__join"
               disabled={!mundoSelecionado || vinculando}
               onClick={handleVincularMundo}
             >
@@ -171,7 +171,7 @@ export function MasterDashboard({
         )}
       </section>
 
-      <EventosMesaPanel eventos={eventos} status={status} />
+      <EventosMesaPanel eventos={eventos} status={status} onReconectar={reconectar} />
       <PedirRolagemForm
         jogadores={(fichas ?? []).map((f) => ({ contaId: f.contaId, nome: f.nomeJogador ?? f.nomePersonagem }))}
         onPedir={(input) => {
