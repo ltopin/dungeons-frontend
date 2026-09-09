@@ -14,6 +14,7 @@ import { WorldsListPage } from './routes/WorldsListPage'
 import { NewWorldPage } from './routes/NewWorldPage'
 import { WorldPage } from './routes/WorldPage'
 import { CampaignLorePage } from './routes/CampaignLorePage'
+import { GeracaoMundoPage } from './routes/GeracaoMundoPage'
 
 export function App() {
   return (
@@ -42,6 +43,14 @@ export function App() {
           element={
             <RequireSession>
               <WorldWizardPage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/campanhas/nova-ia/:geracaoId"
+          element={
+            <RequireSession>
+              <GeracaoMundoPage />
             </RequireSession>
           }
         />

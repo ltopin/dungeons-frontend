@@ -1,14 +1,7 @@
-/**
- * `aguardando-papel` só ocorre para o criador de uma campanha gerada por IA
- * que ainda não escolheu entrar como jogador nem assumir como mestre — ver
- * `ai-world-generation`.
- */
-export type Role = 'mestre' | 'jogador' | 'aguardando-papel'
+export type Role = 'mestre' | 'jogador'
 
 /** Quem conduz a campanha hoje. Ausente/`'humano'` para campanhas fora do fluxo de IA. */
 export type OrigemMestre = 'humano' | 'ia'
-
-export type StatusGeracaoMundo = 'gerando' | 'pronta' | 'erro'
 
 export type ModoCampanha = 'exploracao' | 'combate'
 
@@ -31,10 +24,6 @@ export interface Campanha {
   mestre?: OrigemMestre
   /** true quando a conta atual foi quem criou esta campanha (relevante para `ai-master-handoff`). */
   souCriador?: boolean
-  /** Presente enquanto `mestre === 'ia'` e `role === 'aguardando-papel'`. */
-  statusGeracaoMundo?: StatusGeracaoMundo
-  /** Presente quando `statusGeracaoMundo === 'erro'`. */
-  erroGeracaoMundo?: string
   /** Presente quando `mestre === 'ia'` e o mundo já está pronto. */
   modo?: ModoCampanha
   /** true quando esta campanha já passou por um handoff IA → humano e tem resumo para reabrir. */
@@ -50,6 +39,23 @@ export interface ContextoMundoIA {
   inspiracoes?: string
   idioma?: string
   nomeMundo?: string
+}
+
+export type StatusGeracaoMundoIA = 'pendente' | 'em_andamento' | 'concluida' | 'erro'
+
+/**
+ * Geração assíncrona de mundo (`ai-world-generation`, backend `dungeons-api`).
+ * A campanha só passa a existir quando `status === 'concluida'` — até lá só
+ * este registro existe, por isso o acompanhamento é feito por `id` (geracaoId),
+ * não por campanhaId.
+ */
+export interface GeracaoMundoIA {
+  id: string
+  status: StatusGeracaoMundoIA
+  /** Presente apenas quando `status === 'concluida'`. */
+  campanhaId?: string
+  /** Presente apenas quando `status === 'erro'`. */
+  erro?: string
 }
 
 export interface Mundo {

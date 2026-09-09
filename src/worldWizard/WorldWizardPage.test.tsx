@@ -5,15 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../App'
 import { sairDaConta } from '../auth/session'
 import * as aiMasterApi from '../api/aiMaster'
-import * as campaignsApi from '../api/campaigns'
 import { autenticarComoContaFake } from '../test/session'
 
 vi.mock('../api/accounts')
 vi.mock('../api/aiMaster')
-vi.mock('../api/campaigns')
 
 const aiMasterMock = vi.mocked(aiMasterApi)
-const campanhasMock = vi.mocked(campaignsApi)
 
 beforeEach(async () => {
   sairDaConta()
@@ -55,14 +52,8 @@ describe('wizard de criação de mundo por IA', () => {
   })
 
   it('percorre o wizard completo, dispara a geração ao concluir e mostra o acompanhamento', async () => {
-    aiMasterMock.iniciarGeracaoMundo.mockResolvedValue({ campanhaId: 'camp-ia-1' })
-    campanhasMock.obterCampanha.mockResolvedValue({
-      id: 'camp-ia-1',
-      nome: 'Mundo Novo',
-      role: 'aguardando-papel',
-      mestre: 'ia',
-      statusGeracaoMundo: 'gerando',
-    })
+    aiMasterMock.iniciarGeracaoMundo.mockResolvedValue({ id: 'geracao-1', status: 'pendente' })
+    aiMasterMock.consultarStatusGeracaoMundo.mockResolvedValue({ id: 'geracao-1', status: 'pendente' })
 
     const user = userEvent.setup()
     render(

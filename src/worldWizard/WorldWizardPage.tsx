@@ -62,7 +62,7 @@ export function WorldWizardPage() {
     setErro(null)
     setEnviando(true)
     try {
-      const { campanhaId } = await iniciarGeracaoMundo({
+      const geracao = await iniciarGeracaoMundo({
         generoTom: estado.generoTom.trim(),
         nivelPoder: estado.nivelPoder,
         restricoesConteudo: estado.semRestricoes ? 'Nenhuma restrição informada.' : estado.restricoesConteudo.trim(),
@@ -72,7 +72,7 @@ export function WorldWizardPage() {
         nomeMundo: estado.nomeMundo.trim() || undefined,
       })
       setConcluidos((prev) => new Set(prev).add('extras'))
-      navigate(`/campanhas/${campanhaId}`)
+      navigate(`/campanhas/nova-ia/${geracao.id}`)
     } catch (err) {
       if (err instanceof ApiError) {
         setErro('Não foi possível iniciar a geração do mundo agora. Tente novamente em instantes.')

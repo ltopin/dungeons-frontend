@@ -1,18 +1,28 @@
 import { apiRequest } from './client'
-import type { ContextoMundoIA } from './types'
+import type { ContextoMundoIA, GeracaoMundoIA, StatusGeracaoMundoIA } from './types'
 
-interface IniciarGeracaoMundoRespostaApi {
-  campanha_id: string
+interface GeracaoMundoIAApi {
+  id: string
+  status: StatusGeracaoMundoIA
+  campanha_id?: string
+  erro?: string
+}
+
+function mapGeracao(api: GeracaoMundoIAApi): GeracaoMundoIA {
+  return { id: api.id, status: api.status, campanhaId: api.campanha_id, erro: api.erro }
 }
 
 /**
- * Envia o contexto coletado pelo wizard de criação de mundo e inicia a
- * geração assíncrona no backend (change irmã `ai-dungeon-master` no
- * `dungeons-api`). A campanha já existe ao retornar, mas seu mundo ainda
- * pode estar em geração — ver `obterCampanha` + `Campanha.statusGeracaoMundo`.
+ * Dispara a geração assíncrona de mundo no backend (change irmã
+ * `ai-dungeon-master` no `dungeons-api`, montada em `/geracao-mundo-ia`, não
+ * em `/campanhas`). O backend não cria a campanha de imediato — ela só passa
+ * a existir quando a geração conclui (`status === 'concluida'`), ver
+ * `consultarStatusGeracaoMundo`. `idioma` e `nomeMundo` são campos separados
+ * no wizard, mas o backend espera um único `idioma_nome_mundo`.
  */
-export async function iniciarGeracaoMundo(contexto: ContextoMundoIA): Promise<{ campanhaId: string }> {
-  const resposta = await apiRequest<IniciarGeracaoMundoRespostaApi>('/campanhas/gerar-ia', {
+export async function iniciarGeracaoMundo(contexto: ContextoMundoIA): Promise<GeracaoMundoIA> {
+  const idiomaNomeMundo = [contexto.idioma, contexto.nomeMundo].filter(Boolean).join(' — ') || undefined
+  const resposta = await apiRequest<GeracaoMundoIAApi>('/geracao-mundo-ia', {
     method: 'POST',
     body: {
       genero_tom: contexto.generoTom,
@@ -20,11 +30,35 @@ export async function iniciarGeracaoMundo(contexto: ContextoMundoIA): Promise<{ 
       restricoes_conteudo: contexto.restricoesConteudo,
       tamanho_grupo: contexto.tamanhoGrupo,
       inspiracoes: contexto.inspiracoes || undefined,
-      idioma: contexto.idioma || undefined,
-      nome_mundo: contexto.nomeMundo || undefined,
+      idioma_nome_mundo: idiomaNomeMundo,
     },
   })
-  return { campanhaId: resposta.campanha_id }
+  return mapGeracao(resposta)
+}
+
+/** Consulta o status de uma geração de mundo em andamento, para polling. */
+export async function consultarStatusGeracaoMundo(geracaoId: string): Promise<GeracaoMundoIA> {
+  const resposta = await apiRequest<GeracaoMundoIAApi>(`/geracao-mundo-ia/${geracaoId}`)
+  return mapGeracao(resposta)
+}
+
+interface EntrarAposGeracaoRespostaApi {
+  membership: { campanha_id: string }
+  ficha: { id: string }
+}
+
+/**
+ * Criador entra como jogador comum na campanha recém-gerada; a IA permanece
+ * mestre. Só é válido depois que a geração indicada por `geracaoId` concluiu.
+ */
+export async function entrarComoJogadorAposGeracao(
+  geracaoId: string,
+): Promise<{ campanhaId: string; fichaId: string }> {
+  const resposta = await apiRequest<EntrarAposGeracaoRespostaApi>(
+    `/geracao-mundo-ia/${geracaoId}/entrar-como-jogador`,
+    { method: 'POST' },
+  )
+  return { campanhaId: resposta.membership.campanha_id, fichaId: resposta.ficha.id }
 }
 
 interface ResumoHandoffApi {
