@@ -50,4 +50,19 @@ describe('CampaignLorePage', () => {
       await screen.findByText('Esta campanha ainda não tem nenhuma história publicada para consultar.'),
     ).toBeInTheDocument()
   })
+
+  it('o link de voltar aponta para /campanhas, não para a campanha atual', async () => {
+    worldsMock.listarElementosPublicadosDaCampanha.mockResolvedValue([])
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/historia']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('link', { name: 'Voltar às campanhas' })).toHaveAttribute(
+      'href',
+      '/campanhas',
+    )
+  })
 })

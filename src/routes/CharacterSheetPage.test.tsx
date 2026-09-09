@@ -90,6 +90,21 @@ describe('link para história da campanha', () => {
   })
 })
 
+describe('link para voltar às campanhas', () => {
+  it('aponta para /campanhas, não para a campanha atual', async () => {
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('link', { name: 'Voltar às campanhas' })).toHaveAttribute(
+      'href',
+      '/campanhas',
+    )
+  })
+})
+
 describe('editor de ficha', () => {
   it('carrega os dados da API antes de exibir os campos', async () => {
     render(

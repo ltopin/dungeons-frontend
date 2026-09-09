@@ -108,8 +108,8 @@ export function CharacterWizardPage() {
     <main aria-label="Trilha de criação de personagem" className="ficha-sheet wizard-screen">
       <header className="masthead">
         <div className="eyebrow">Trilha de Criação de Personagem · D&amp;D 3.5</div>
-        <Link to={`/campanhas/${id}`} className="ro-back-link">
-          Voltar à campanha
+        <Link to="/campanhas" className="ro-back-link">
+          Voltar às campanhas
         </Link>
       </header>
 

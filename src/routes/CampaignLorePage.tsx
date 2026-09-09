@@ -38,8 +38,8 @@ export function CampaignLorePage() {
     <main className="campaigns-screen">
       <header className="campaigns-screen__masthead">
         <h1 id="historia-heading">História da campanha</h1>
-        <Link to={`/campanhas/${id}`} className="campaigns-screen__logout">
-          Voltar à campanha
+        <Link to="/campanhas" className="campaigns-screen__logout">
+          Voltar às campanhas
         </Link>
       </header>
 

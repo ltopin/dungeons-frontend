@@ -137,8 +137,8 @@ export function CharacterSheetPage() {
             História da campanha
           </Link>
         )}
-        <Link to={`/campanhas/${id}`} className="ro-back-link">
-          Voltar à campanha
+        <Link to="/campanhas" className="ro-back-link">
+          Voltar às campanhas
         </Link>
       </header>
 
