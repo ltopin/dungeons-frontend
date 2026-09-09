@@ -22,11 +22,14 @@ export function AtaquesTab({
   ataques,
   onItemsChange,
   onRolar,
+  rolarDesabilitado,
 }: {
   fichaId: string
   ataques: FichaAtaque[]
   onItemsChange?: (ataques: FichaAtaque[]) => void
   onRolar?: (itemId: string) => void
+  /** Título exibido no botão de rolar quando desabilitado (ex.: de quem é a vez em combate). */
+  rolarDesabilitado?: string
 }) {
   const { items, addItem, removeItem, updateItemField, statusById, retryItem, createError } =
     useListSection<FichaAtaque>(fichaId, 'ataques', ataques, undefined, onItemsChange)
@@ -98,6 +101,8 @@ export function AtaquesTab({
                   type="button"
                   className="roll-btn"
                   aria-label={`Rolar ${ataque.arma}`}
+                  disabled={Boolean(rolarDesabilitado)}
+                  title={rolarDesabilitado}
                   onClick={() => onRolar(ataque.id)}
                 >
                   Rolar

@@ -1,4 +1,16 @@
-export type Role = 'mestre' | 'jogador'
+/**
+ * `aguardando-papel` só ocorre para o criador de uma campanha gerada por IA
+ * que ainda não escolheu entrar como jogador nem assumir como mestre — ver
+ * `ai-world-generation`.
+ */
+export type Role = 'mestre' | 'jogador' | 'aguardando-papel'
+
+/** Quem conduz a campanha hoje. Ausente/`'humano'` para campanhas fora do fluxo de IA. */
+export type OrigemMestre = 'humano' | 'ia'
+
+export type StatusGeracaoMundo = 'gerando' | 'pronta' | 'erro'
+
+export type ModoCampanha = 'exploracao' | 'combate'
 
 export interface Conta {
   id: string
@@ -15,6 +27,29 @@ export interface Campanha {
   fichaId?: string
   /** Presente quando a campanha tem um mundo vinculado. */
   mundoId?: string
+  /** Ausente equivale a `'humano'` — mantém campanhas existentes sem mudança de comportamento. */
+  mestre?: OrigemMestre
+  /** true quando a conta atual foi quem criou esta campanha (relevante para `ai-master-handoff`). */
+  souCriador?: boolean
+  /** Presente enquanto `mestre === 'ia'` e `role === 'aguardando-papel'`. */
+  statusGeracaoMundo?: StatusGeracaoMundo
+  /** Presente quando `statusGeracaoMundo === 'erro'`. */
+  erroGeracaoMundo?: string
+  /** Presente quando `mestre === 'ia'` e o mundo já está pronto. */
+  modo?: ModoCampanha
+  /** true quando esta campanha já passou por um handoff IA → humano e tem resumo para reabrir. */
+  handoffDisponivel?: boolean
+}
+
+/** Contexto coletado pelo wizard de criação de mundo (`ai-world-generation`). */
+export interface ContextoMundoIA {
+  generoTom: string
+  nivelPoder: string
+  restricoesConteudo: string
+  tamanhoGrupo: number
+  inspiracoes?: string
+  idioma?: string
+  nomeMundo?: string
 }
 
 export interface Mundo {

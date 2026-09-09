@@ -1,23 +1,37 @@
-import { WIZARD_STEPS, type WizardStepId } from './wizardSteps'
+export interface WizardStepInfo<TStepId extends string = string> {
+  id: TStepId
+  titulo: string
+}
 
-export function WizardSidebar({
+/**
+ * Barra lateral genérica de wizard (etapa atual, concluída, ou não aplicável),
+ * com navegação livre entre etapas — reaproveitada pelo `character-creation-wizard`
+ * e pelo wizard de criação de mundo (`ai-world-generation`). Nenhuma parte
+ * deste componente conhece o domínio de cada wizard: os passos e o rótulo do
+ * `<nav>` vêm sempre de fora.
+ */
+export function WizardSidebar<TStepId extends string>({
+  ariaLabel,
+  steps,
   current,
   concluidos,
   onSelect,
-  magiasNaoSeAplica,
+  naoSeAplica,
 }: {
-  current: WizardStepId
-  concluidos: Set<WizardStepId>
-  onSelect: (step: WizardStepId) => void
-  magiasNaoSeAplica: boolean
+  ariaLabel: string
+  steps: WizardStepInfo<TStepId>[]
+  current: TStepId
+  concluidos: Set<TStepId>
+  onSelect: (step: TStepId) => void
+  naoSeAplica?: Set<TStepId>
 }) {
   return (
-    <nav aria-label="Etapas da criação de personagem" className="wizard-sidebar">
+    <nav aria-label={ariaLabel} className="wizard-sidebar">
       <ol>
-        {WIZARD_STEPS.map((info, index) => {
-          const naoSeAplica = info.id === 'magias' && magiasNaoSeAplica
+        {steps.map((info, index) => {
+          const na = naoSeAplica?.has(info.id) ?? false
           const concluido = concluidos.has(info.id)
-          const status = naoSeAplica ? 'na' : concluido ? 'concluido' : 'pendente'
+          const status = na ? 'na' : concluido ? 'concluido' : 'pendente'
           return (
             <li key={info.id}>
               <button
@@ -30,7 +44,7 @@ export function WizardSidebar({
                 <span className="wizard-step-index">{index + 1}</span>
                 <span className="wizard-step-titulo">{info.titulo}</span>
                 <span className="wizard-step-status" aria-hidden="true">
-                  {naoSeAplica ? '—' : concluido ? '✓' : ''}
+                  {na ? '—' : concluido ? '✓' : ''}
                 </span>
               </button>
             </li>

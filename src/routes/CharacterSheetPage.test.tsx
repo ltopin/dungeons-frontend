@@ -51,6 +51,9 @@ beforeEach(async () => {
     emitirRolagem: vi.fn().mockResolvedValue({}),
     pedirRolagem: vi.fn().mockResolvedValue({}),
     reconectar: vi.fn(),
+    rodada: null,
+    enviarResumoRodada: vi.fn(),
+    fecharRodada: vi.fn(),
   })
 })
 
@@ -457,6 +460,9 @@ describe('eventos de mesa', () => {
       emitirRolagem,
       pedirRolagem: vi.fn(),
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     const user = userEvent.setup()
@@ -480,6 +486,7 @@ describe('eventos de mesa', () => {
           id: 'ev-1',
           campanhaId: 'camp-1',
           autorContaId: 'conta-1',
+          origem: 'jogador',
           criadoEm: '2026-01-01T00:00:00.000Z',
           tipo: 'rolagem_dados',
           payload: {
@@ -498,6 +505,9 @@ describe('eventos de mesa', () => {
       emitirRolagem: vi.fn(),
       pedirRolagem: vi.fn(),
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     render(
@@ -519,6 +529,9 @@ describe('eventos de mesa', () => {
       emitirRolagem: vi.fn(),
       pedirRolagem: vi.fn(),
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     render(

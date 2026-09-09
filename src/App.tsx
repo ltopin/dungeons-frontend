@@ -9,6 +9,7 @@ import { CampaignPage } from './routes/CampaignPage'
 import { CharacterSheetPage } from './routes/CharacterSheetPage'
 import { CharacterSheetReadOnlyPage } from './routes/CharacterSheetReadOnlyPage'
 import { CharacterWizardPage } from './wizard/CharacterWizardPage'
+import { WorldWizardPage } from './worldWizard/WorldWizardPage'
 import { WorldsListPage } from './routes/WorldsListPage'
 import { NewWorldPage } from './routes/NewWorldPage'
 import { WorldPage } from './routes/WorldPage'
@@ -33,6 +34,14 @@ export function App() {
           element={
             <RequireSession>
               <NewCampaignPage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/campanhas/nova-ia"
+          element={
+            <RequireSession>
+              <WorldWizardPage />
             </RequireSession>
           }
         />

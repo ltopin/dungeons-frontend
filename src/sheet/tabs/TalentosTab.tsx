@@ -17,6 +17,7 @@ function TalentoList({
   removeItem,
   emptyHint,
   onRolar,
+  rolarDesabilitado,
 }: {
   items: FichaTalento[]
   statusById: Record<string, SaveStatus>
@@ -25,6 +26,7 @@ function TalentoList({
   removeItem: (id: string) => void
   emptyHint: string
   onRolar?: (itemId: string) => void
+  rolarDesabilitado?: string
 }) {
   if (items.length === 0) return <p className="hint">{emptyHint}</p>
 
@@ -66,6 +68,8 @@ function TalentoList({
                 type="button"
                 className="roll-btn"
                 aria-label={`Rolar ${talento.nome}`}
+                disabled={Boolean(rolarDesabilitado)}
+                title={rolarDesabilitado}
                 onClick={() => onRolar(talento.id)}
               >
                 Rolar
@@ -89,11 +93,14 @@ export function TalentosTab({
   talentos,
   onItemsChange,
   onRolar,
+  rolarDesabilitado,
 }: {
   fichaId: string
   talentos: FichaTalento[]
   onItemsChange?: (talentos: FichaTalento[]) => void
   onRolar?: (itemId: string) => void
+  /** Título exibido no botão de rolar quando desabilitado (ex.: de quem é a vez em combate). */
+  rolarDesabilitado?: string
 }) {
   const { items, addItem, removeItem, updateItemField, statusById, retryItem, createError } =
     useListSection<FichaTalento>(fichaId, 'talentos', talentos, undefined, onItemsChange)
@@ -124,6 +131,7 @@ export function TalentosTab({
         removeItem={removeItem}
         emptyHint="Nenhum talento cadastrado ainda — adicione o primeiro talento do personagem."
         onRolar={onRolar}
+        rolarDesabilitado={rolarDesabilitado}
       />
 
       <SectionTitle accent="blue">Qualidades Especiais</SectionTitle>
@@ -135,6 +143,7 @@ export function TalentosTab({
         removeItem={removeItem}
         emptyHint="Nenhuma qualidade especial cadastrada ainda."
         onRolar={onRolar}
+        rolarDesabilitado={rolarDesabilitado}
       />
     </section>
   )

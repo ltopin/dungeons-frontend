@@ -1,13 +1,9 @@
 import type { Ficha } from '../api/types'
+import type { WizardStepInfo } from './WizardSidebar'
 
 export type WizardStepId = 'raca-classe' | 'atributos' | 'pericias' | 'talentos' | 'magias' | 'equipamento' | 'revisao'
 
-export interface WizardStepInfo {
-  id: WizardStepId
-  titulo: string
-}
-
-export const WIZARD_STEPS: WizardStepInfo[] = [
+export const WIZARD_STEPS: WizardStepInfo<WizardStepId>[] = [
   { id: 'raca-classe', titulo: 'Raça e Classe' },
   { id: 'atributos', titulo: 'Atributos' },
   { id: 'pericias', titulo: 'Perícias' },

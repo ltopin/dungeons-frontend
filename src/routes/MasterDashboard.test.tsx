@@ -30,6 +30,9 @@ beforeEach(async () => {
     emitirRolagem: vi.fn().mockResolvedValue({}),
     pedirRolagem: vi.fn().mockResolvedValue({}),
     reconectar: vi.fn(),
+    rodada: null,
+    enviarResumoRodada: vi.fn(),
+    fecharRodada: vi.fn(),
   })
 })
 
@@ -96,6 +99,9 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       emitirRolagem: vi.fn(),
       pedirRolagem,
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     const user = userEvent.setup()
@@ -128,6 +134,9 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       emitirRolagem: vi.fn(),
       pedirRolagem,
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     const user = userEvent.setup()
@@ -153,6 +162,9 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       emitirRolagem: vi.fn(),
       pedirRolagem: vi.fn(),
       reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
     })
 
     render(

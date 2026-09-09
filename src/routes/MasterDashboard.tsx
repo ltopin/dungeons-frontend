@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarFichasDaCampanha, vincularMundoACampanha } from '../api/campaigns'
 import { listarMundos } from '../api/worlds'
+import { obterResumoHandoff } from '../api/aiMaster'
 import type { Campanha, FichaResumo, Mundo } from '../api/types'
 import { useCampaignEvents } from '../realtime/useCampaignEvents'
 import { EventosMesaPanel } from '../realtime/EventosMesaPanel'
 import { PedirRolagemForm } from '../realtime/PedirRolagemForm'
+import { HandoffResumoView } from './HandoffResumoView'
 
 export function MasterDashboard({
   campanha,
@@ -19,6 +21,19 @@ export function MasterDashboard({
   const erroFichasRef = useRef<HTMLParagraphElement>(null)
   const { eventos, status, pedirRolagem, reconectar } = useCampaignEvents(campanha.id)
   const [erroPedido, setErroPedido] = useState<string | null>(null)
+
+  const [resumoHandoff, setResumoHandoff] = useState<string | null>(null)
+  const [carregandoResumoHandoff, setCarregandoResumoHandoff] = useState(false)
+  const [erroResumoHandoff, setErroResumoHandoff] = useState<string | null>(null)
+
+  function reabrirResumoHandoff() {
+    setErroResumoHandoff(null)
+    setCarregandoResumoHandoff(true)
+    obterResumoHandoff(campanha.id)
+      .then(({ resumo }) => setResumoHandoff(resumo))
+      .catch(() => setErroResumoHandoff('Não foi possível carregar o resumo da transição agora.'))
+      .finally(() => setCarregandoResumoHandoff(false))
+  }
 
   const [mundos, setMundos] = useState<Mundo[]>([])
   const [mundoIdAtual, setMundoIdAtual] = useState(campanha.mundoId)
@@ -79,6 +94,22 @@ export function MasterDashboard({
         <p role="status" className="welcome-banner">
           Campanha criada! Seus jogadores já podem encontrá-la na lista de campanhas abertas para entrar.
         </p>
+      )}
+
+      {campanha.handoffDisponivel && !resumoHandoff && (
+        <p className="campaigns-screen__hint">
+          <button type="button" className="campaigns-screen__retry" disabled={carregandoResumoHandoff} onClick={reabrirResumoHandoff}>
+            {carregandoResumoHandoff ? 'Carregando resumo…' : 'Ver resumo da transição para mestre humano'}
+          </button>
+        </p>
+      )}
+      {erroResumoHandoff && (
+        <p role="alert" className="campaigns-screen__error">
+          {erroResumoHandoff}
+        </p>
+      )}
+      {resumoHandoff && (
+        <HandoffResumoView resumo={resumoHandoff} onFechar={() => setResumoHandoff(null)} fecharLabel="Fechar" />
       )}
 
       <section className="campaigns-screen__panel" aria-labelledby="mundo-vinculado-heading">

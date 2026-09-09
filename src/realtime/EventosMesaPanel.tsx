@@ -25,12 +25,30 @@ function descreverEvento(evento: EventoMesa): { titulo: string; detalhe: string 
     }
   }
 
-  const alvo = evento.payload.destinatarioContaId
-    ? evento.payload.destinatarioNomePersonagem ?? 'um jogador'
-    : 'toda a mesa'
+  if (evento.tipo === 'pedido_rolagem') {
+    const alvo = evento.payload.destinatarioContaId
+      ? evento.payload.destinatarioNomePersonagem ?? 'um jogador'
+      : 'toda a mesa'
+    return {
+      titulo: `${evento.origem === 'ia' ? 'A IA' : 'Mestre'} pediu uma rolagem para ${alvo}`,
+      detalhe: evento.payload.descricao,
+    }
+  }
+
+  if (evento.tipo === 'narracao_ia') {
+    return {
+      titulo: `Narração da rodada ${evento.payload.rodada}`,
+      detalhe: evento.payload.texto,
+    }
+  }
+
+  const rotuloModo = (modo: 'exploracao' | 'combate') => (modo === 'combate' ? 'combate' : 'exploração')
   return {
-    titulo: `Mestre pediu uma rolagem para ${alvo}`,
-    detalhe: evento.payload.descricao,
+    titulo:
+      evento.payload.modoNovo === 'combate'
+        ? 'A IA iniciou o combate'
+        : `A IA encerrou o combate — voltando ao modo ${rotuloModo(evento.payload.modoNovo)}`,
+    detalhe: `${rotuloModo(evento.payload.modoAnterior)} → ${rotuloModo(evento.payload.modoNovo)}`,
   }
 }
 
@@ -76,8 +94,14 @@ export function EventosMesaPanel({
         <ul className="eventos-mesa__list">
           {eventos.map((evento) => {
             const { titulo, detalhe } = descreverEvento(evento)
+            const deIA = evento.origem === 'ia'
             return (
-              <li key={evento.id}>
+              <li key={evento.id} data-origem={evento.origem} className={deIA ? 'eventos-mesa__item--ia' : undefined}>
+                {deIA && (
+                  <span className="eventos-mesa__origem-ia" aria-label="Evento gerado pela IA">
+                    IA
+                  </span>
+                )}
                 <strong>{titulo}</strong>
                 <span className="eventos-mesa__detalhe">{detalhe}</span>
               </li>

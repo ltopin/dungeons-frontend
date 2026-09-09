@@ -12,12 +12,15 @@ export function PericiasTab({
   geral,
   onItemsChange,
   onRolar,
+  rolarDesabilitado,
 }: {
   fichaId: string
   pericias: FichaPericia[]
   geral: FichaGeral
   onItemsChange?: (pericias: FichaPericia[]) => void
   onRolar?: (itemId: string) => void
+  /** Título exibido no botão de rolar quando desabilitado (ex.: de quem é a vez em combate). */
+  rolarDesabilitado?: string
 }) {
   const { items, addItem, removeItem, updateItemField, statusById, retryItem, createError } =
     useListSection<FichaPericia>(
@@ -116,6 +119,8 @@ export function PericiasTab({
                   type="button"
                   className="roll-btn"
                   aria-label={`Rolar ${pericia.nome}`}
+                  disabled={Boolean(rolarDesabilitado)}
+                  title={rolarDesabilitado}
                   onClick={() => onRolar(pericia.id)}
                 >
                   Rolar

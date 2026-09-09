@@ -114,7 +114,14 @@ export function CharacterWizardPage() {
       </header>
 
       <div className="wizard-layout">
-        <WizardSidebar current={step} concluidos={concluidos} onSelect={setStep} magiasNaoSeAplica={magiasNaoSeAplica} />
+        <WizardSidebar
+          ariaLabel="Etapas da criação de personagem"
+          steps={WIZARD_STEPS}
+          current={step}
+          concluidos={concluidos}
+          onSelect={setStep}
+          naoSeAplica={magiasNaoSeAplica ? new Set<WizardStepId>(['magias']) : undefined}
+        />
 
         <div className="wizard-main panel">
           {step === 'raca-classe' && (

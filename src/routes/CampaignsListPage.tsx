@@ -7,6 +7,7 @@ import type { Campanha, CampanhaDisponivel, Role } from '../api/types'
 const ROLE_LABEL: Record<Role, string> = {
   mestre: 'Mestre',
   jogador: 'Jogador',
+  'aguardando-papel': 'Escolha pendente',
 }
 
 export function CampaignsListPage() {

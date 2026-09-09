@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { io, type Socket } from 'socket.io-client'
 import { getToken } from '../auth/session'
 import { mapEventoFromWire, type EventoMesa, type TipoItemFicha } from './types'
+import { mapEstadoRodadaFromWire, type EstadoRodada } from './rodada'
 
 /**
  * Mesma origem usada para as chamadas REST (ver src/api/client.ts) — o
@@ -37,6 +38,10 @@ export interface UseCampaignEventsResult {
   emitirRolagem: (input: EmitirRolagemInput) => Promise<EventoMesa>
   pedirRolagem: (input: PedirRolagemInput) => Promise<EventoMesa>
   reconectar: () => void
+  /** Estado da rodada corrente (`ai-session-narration`) — `null` fora do fluxo de mestre-IA. */
+  rodada: EstadoRodada | null
+  enviarResumoRodada: (texto: string) => Promise<void>
+  fecharRodada: () => Promise<void>
 }
 
 function ackParaEvento(resposta: AckResponse, rejeitarMsg: string): Promise<EventoMesa> {
@@ -49,6 +54,7 @@ function ackParaEvento(resposta: AckResponse, rejeitarMsg: string): Promise<Even
 export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEventsResult {
   const [eventos, setEventos] = useState<EventoMesa[]>([])
   const [status, setStatus] = useState<ConexaoEventosStatus>('conectando')
+  const [rodada, setRodada] = useState<EstadoRodada | null>(null)
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
@@ -56,6 +62,7 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
 
     setEventos([])
     setStatus('conectando')
+    setRodada(null)
 
     const socket: Socket = io(SOCKET_URL, {
       auth: { token: getToken() ?? undefined },
@@ -78,6 +85,10 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
 
     socket.on('evento:novo', (evento: unknown) => {
       setEventos((atual) => [...atual, mapEventoFromWire(evento as Parameters<typeof mapEventoFromWire>[0])])
+    })
+
+    socket.on('rodada:estado', (estado: unknown) => {
+      setRodada(mapEstadoRodadaFromWire(estado as Parameters<typeof mapEstadoRodadaFromWire>[0]))
     })
 
     socket.on('connect_error', () => setStatus('indisponivel'))
@@ -146,5 +157,33 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
     socket.connect()
   }
 
-  return { eventos, status, emitirRolagem, pedirRolagem, reconectar }
+  function enviarResumoRodada(texto: string): Promise<void> {
+    const socket = socketRef.current
+    if (!socket || !campanhaId) {
+      return Promise.reject(new Error('Conexão de tempo real indisponível'))
+    }
+
+    return new Promise((resolve, reject) => {
+      socket.emit('rodada:resumo', { campanha_id: campanhaId, texto }, (resposta: AckResponse) => {
+        if (resposta?.ok) resolve()
+        else reject(new Error(resposta?.error || 'Não foi possível enviar o resumo da rodada'))
+      })
+    })
+  }
+
+  function fecharRodada(): Promise<void> {
+    const socket = socketRef.current
+    if (!socket || !campanhaId) {
+      return Promise.reject(new Error('Conexão de tempo real indisponível'))
+    }
+
+    return new Promise((resolve, reject) => {
+      socket.emit('rodada:fechar', { campanha_id: campanhaId }, (resposta: AckResponse) => {
+        if (resposta?.ok) resolve()
+        else reject(new Error(resposta?.error || 'Não foi possível fechar a rodada'))
+      })
+    })
+  }
+
+  return { eventos, status, emitirRolagem, pedirRolagem, reconectar, rodada, enviarResumoRodada, fecharRodada }
 }

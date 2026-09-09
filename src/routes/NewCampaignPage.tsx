@@ -55,6 +55,19 @@ export function NewCampaignPage() {
         </Link>
       </header>
 
+      <section className="campaigns-screen__panel campaigns-screen__panel--ia" aria-labelledby="nova-campanha-ia-heading">
+        <h2 id="nova-campanha-ia-heading" className="campaigns-screen__section-title">
+          Prefere não criar o mundo você mesmo?
+        </h2>
+        <p className="campaigns-screen__hint">
+          A IA pode gerar um mundo completo e conduzir a campanha por você, a partir de um contexto que você
+          descreve.
+        </p>
+        <Link to="/campanhas/nova-ia" className="campaigns-screen__join">
+          Gerar campanha com IA
+        </Link>
+      </section>
+
       <section className="campaigns-screen__panel" aria-labelledby="nova-campanha-heading">
         <form onSubmit={handleSubmit} noValidate>
           <div className="auth-screen__field">

@@ -9,6 +9,7 @@ const rolagemDeOutroJogador: EventoMesa = {
   id: 'ev-1',
   campanhaId: 'camp-1',
   autorContaId: 'conta-2',
+  origem: 'jogador',
   criadoEm: '2026-01-01T00:00:00.000Z',
   tipo: 'rolagem_dados',
   payload: {
@@ -40,6 +41,7 @@ const pedidoDoMestre: EventoMesa = {
   id: 'ev-2',
   campanhaId: 'camp-1',
   autorContaId: 'mestre-1',
+  origem: 'jogador',
   criadoEm: '2026-01-01T00:01:00.000Z',
   tipo: 'pedido_rolagem',
   payload: {
@@ -59,6 +61,30 @@ const pedidoDoMestreParaTodos: EventoMesa = {
   ...pedidoDoMestre,
   id: 'ev-2c',
   payload: { destinatarioContaId: null, destinatarioNomePersonagem: null, descricao: 'Teste de Percepção' },
+}
+
+const narracaoDaIA: EventoMesa = {
+  id: 'ev-3',
+  campanhaId: 'camp-1',
+  autorContaId: null,
+  origem: 'ia',
+  criadoEm: '2026-01-01T00:02:00.000Z',
+  tipo: 'narracao_ia',
+  payload: { texto: 'A porta range e uma fumaça verde escapa pela fresta.', rodada: 4 },
+}
+
+const mudancaParaCombate: EventoMesa = {
+  id: 'ev-4',
+  campanhaId: 'camp-1',
+  autorContaId: null,
+  origem: 'ia',
+  criadoEm: '2026-01-01T00:03:00.000Z',
+  tipo: 'mudanca_modo',
+  payload: {
+    modoAnterior: 'exploracao',
+    modoNovo: 'combate',
+    ordemIniciativa: [{ contaId: 'conta-2', nome: 'Thorin', iniciativa: 18 }],
+  },
 }
 
 describe('EventosMesaPanel', () => {
@@ -131,5 +157,22 @@ describe('EventosMesaPanel', () => {
   it('não mostra botão de reconexão quando conectando ou reconectando', () => {
     render(<EventosMesaPanel eventos={[]} status="conectando" onReconectar={vi.fn()} />)
     expect(screen.queryByRole('button', { name: 'Tentar reconectar' })).not.toBeInTheDocument()
+  })
+
+  it('exibe a narração da IA com o texto da rodada', () => {
+    render(<EventosMesaPanel eventos={[narracaoDaIA]} status="conectado" />)
+    expect(screen.getByText('Narração da rodada 4')).toBeInTheDocument()
+    expect(screen.getByText('A porta range e uma fumaça verde escapa pela fresta.')).toBeInTheDocument()
+  })
+
+  it('exibe a mudança de modo para combate gerada pela IA', () => {
+    render(<EventosMesaPanel eventos={[mudancaParaCombate]} status="conectado" />)
+    expect(screen.getByText('A IA iniciou o combate')).toBeInTheDocument()
+  })
+
+  it('marca visualmente eventos de origem IA, distinguindo de eventos humanos', () => {
+    render(<EventosMesaPanel eventos={[rolagemDeOutroJogador, narracaoDaIA]} status="conectado" />)
+    const marcadoresIA = screen.getAllByLabelText('Evento gerado pela IA')
+    expect(marcadoresIA).toHaveLength(1)
   })
 })

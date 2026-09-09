@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { obterCampanha } from '../api/campaigns'
 import { obterFicha } from '../api/sheets'
 import type { Ficha, FichaGeral } from '../api/types'
@@ -14,10 +14,14 @@ import { InventarioTab } from '../sheet/tabs/InventarioTab'
 import { NotasTab } from '../sheet/tabs/NotasTab'
 import { FamiliarTab } from '../sheet/tabs/FamiliarTab'
 import { subscribeSaveAlerts } from '../sheet/saveAlerts'
+import { getContaAtual } from '../auth/session'
 import { useCampaignEvents } from '../realtime/useCampaignEvents'
 import { EventosMesaPanel } from '../realtime/EventosMesaPanel'
 import { RolagemLivreForm } from '../realtime/RolagemLivreForm'
+import { RodadaPanel } from '../realtime/RodadaPanel'
 import type { TipoItemFicha } from '../realtime/types'
+import { AssumirMestreConfirm } from './AssumirMestreConfirm'
+import { HandoffResumoView } from './HandoffResumoView'
 
 const ABAS = [
   'Geral',
@@ -72,12 +76,19 @@ export function CharacterSheetPage() {
   const [geralAoVivo, setGeralAoVivo] = useState<FichaGeral | null>(null)
   const [falhasDeSave, setFalhasDeSave] = useState<string[]>([])
   const [erroRolagem, setErroRolagem] = useState<string | null>(null)
-  const { eventos, status, emitirRolagem, reconectar } = useCampaignEvents(id)
+  const { eventos, status, emitirRolagem, reconectar, rodada, enviarResumoRodada, fecharRodada } =
+    useCampaignEvents(id)
   // Decidido uma única vez a partir do GET inicial — não recomputado a cada
   // sync de autosave, para não arrancar o usuário de volta para a trilha só
   // porque um campo de Geral ficou temporariamente vazio durante uma edição.
   const [redirecionarParaTrilha, setRedirecionarParaTrilha] = useState(false)
   const [mundoId, setMundoId] = useState<string | undefined>(undefined)
+  // Campos de `ai-master-handoff`/`ai-session-narration`: ausentes (undefined/false)
+  // para campanhas com mestre humano, sem mudança de comportamento.
+  const [mestre, setMestre] = useState<'humano' | 'ia' | undefined>(undefined)
+  const [souCriador, setSouCriador] = useState(false)
+  const [resumoHandoff, setResumoHandoff] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => subscribeSaveAlerts(setFalhasDeSave), [])
 
@@ -100,7 +111,11 @@ export function CharacterSheetPage() {
     setFicha(null)
     obterCampanha(id)
       .then((campanha) => {
-        if (!cancelado) setMundoId(campanha.mundoId)
+        if (!cancelado) {
+          setMundoId(campanha.mundoId)
+          setMestre(campanha.mestre)
+          setSouCriador(campanha.souCriador ?? false)
+        }
         if (!campanha.fichaId) throw new Error('sem ficha')
         return obterFicha(campanha.fichaId)
       })
@@ -128,6 +143,24 @@ export function CharacterSheetPage() {
   if (!ficha || !geralAoVivo) return <p>Carregando ficha…</p>
   if (redirecionarParaTrilha) return <Navigate to={`/campanhas/${id}/ficha/criar`} replace />
 
+  if (resumoHandoff) {
+    return (
+      <main className="campaigns-screen">
+        <header className="campaigns-screen__masthead">
+          <h1>{ficha.geral.nomePersonagem}</h1>
+        </header>
+        <HandoffResumoView resumo={resumoHandoff} onFechar={() => navigate(`/campanhas/${id}`)} />
+      </main>
+    )
+  }
+
+  const contaAtualId = getContaAtual()?.id
+  const bloqueadoPorTurno =
+    rodada?.modo === 'combate' && rodada.turnoAtualContaId !== null && rodada.turnoAtualContaId !== contaAtualId
+  const rolarDesabilitado = bloqueadoPorTurno
+    ? `Aguarde o turno de ${rodada?.ordemIniciativa?.find((i) => i.contaId === rodada.turnoAtualContaId)?.nome ?? 'outro combatente'}.`
+    : undefined
+
   return (
     <main aria-label="Editor de ficha" className="ficha-sheet">
       <header className="masthead">
@@ -141,6 +174,12 @@ export function CharacterSheetPage() {
           Voltar às campanhas
         </Link>
       </header>
+
+      {mestre === 'ia' && souCriador && id && (
+        <div className="campaigns-screen__hint">
+          <AssumirMestreConfirm campanhaId={id} onHandoffConcluido={setResumoHandoff} />
+        </div>
+      )}
 
       {falhasDeSave.length > 0 && (
         <div className="autosave-alert" role="alert">
@@ -195,6 +234,7 @@ export function CharacterSheetPage() {
           talentos={ficha.talentos}
           onItemsChange={atualizarSecao('talentos')}
           onRolar={(itemId) => rolarItem('talento', itemId)}
+          rolarDesabilitado={rolarDesabilitado}
         />
       )}
       {aba === 'Ataques' && (
@@ -203,6 +243,7 @@ export function CharacterSheetPage() {
           ataques={ficha.ataques}
           onItemsChange={atualizarSecao('ataques')}
           onRolar={(itemId) => rolarItem('ataque', itemId)}
+          rolarDesabilitado={rolarDesabilitado}
         />
       )}
       {aba === 'Perícias' && (
@@ -212,6 +253,7 @@ export function CharacterSheetPage() {
           geral={geralAoVivo}
           onItemsChange={atualizarSecao('pericias')}
           onRolar={(itemId) => rolarItem('pericia', itemId)}
+          rolarDesabilitado={rolarDesabilitado}
         />
       )}
       {aba === 'Magias' && (
@@ -241,6 +283,14 @@ export function CharacterSheetPage() {
       )}
       {aba === 'Notas' && <NotasTab fichaId={ficha.id} notas={ficha.notas} onSaved={atualizarSecao('notas')} />}
 
+      {rodada && (
+        <RodadaPanel
+          rodada={rodada}
+          onEnviarResumo={enviarResumoRodada}
+          onFecharRodada={fecharRodada}
+          disabled={status === 'indisponivel'}
+        />
+      )}
       <EventosMesaPanel eventos={eventos} status={status} onReconectar={reconectar} />
       <RolagemLivreForm
         onRolar={(notacao) => {
