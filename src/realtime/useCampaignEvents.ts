@@ -36,6 +36,7 @@ export interface UseCampaignEventsResult {
   status: ConexaoEventosStatus
   emitirRolagem: (input: EmitirRolagemInput) => Promise<EventoMesa>
   pedirRolagem: (input: PedirRolagemInput) => Promise<EventoMesa>
+  reconectar: () => void
 }
 
 function ackParaEvento(resposta: AckResponse, rejeitarMsg: string): Promise<EventoMesa> {
@@ -135,5 +136,15 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
     })
   }
 
-  return { eventos, status, emitirRolagem, pedirRolagem }
+  // O cliente Socket.IO para de tentar reconectar sozinho após
+  // `reconnect_failed` (status 'indisponivel'); esta é a única forma de
+  // retomar a partir daí sem recarregar a página inteira.
+  function reconectar(): void {
+    const socket = socketRef.current
+    if (!socket) return
+    setStatus('reconectando')
+    socket.connect()
+  }
+
+  return { eventos, status, emitirRolagem, pedirRolagem, reconectar }
 }

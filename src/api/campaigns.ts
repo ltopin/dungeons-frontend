@@ -10,11 +10,11 @@ export function obterCampanha(id: string): Promise<Campanha> {
 }
 
 export function criarCampanha(nome: string, descricao?: string, mundoId?: string): Promise<Campanha> {
-  return apiRequest<Campanha>('/campanhas', { method: 'POST', body: { nome, descricao, mundoId } })
+  return apiRequest<Campanha>('/campanhas', { method: 'POST', body: { nome, descricao, mundo_id: mundoId } })
 }
 
 export function vincularMundoACampanha(campanhaId: string, mundoId: string): Promise<Campanha> {
-  return apiRequest<Campanha>(`/campanhas/${campanhaId}/mundo`, { method: 'POST', body: { mundoId } })
+  return apiRequest<Campanha>(`/campanhas/${campanhaId}/mundo`, { method: 'PATCH', body: { mundo_id: mundoId } })
 }
 
 export function listarCampanhasAbertas(): Promise<CampanhaDisponivel[]> {

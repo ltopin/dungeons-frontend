@@ -66,6 +66,7 @@ describe('useCampaignEvents', () => {
             dados: [15],
             bonus: 3,
             resultado: 18,
+            autor_nome_personagem: 'Thorin',
           },
           criado_em: '2026-01-01T00:00:00.000Z',
         },
@@ -74,7 +75,11 @@ describe('useCampaignEvents', () => {
 
     expect(result.current.status).toBe('conectado')
     expect(result.current.eventos).toHaveLength(1)
-    expect(result.current.eventos[0].payload).toMatchObject({ resultado: 18, itemNome: 'Furtividade' })
+    expect(result.current.eventos[0].payload).toMatchObject({
+      resultado: 18,
+      itemNome: 'Furtividade',
+      autorNomePersonagem: 'Thorin',
+    })
   })
 
   it('acrescenta novos eventos recebidos enquanto conectado, sem substituir o histórico', () => {
@@ -171,14 +176,23 @@ describe('useCampaignEvents', () => {
             campanha_id: 'camp-1',
             autor_conta_id: 'mestre-1',
             tipo: 'pedido_rolagem',
-            payload: { destinatario_conta_id: 'conta-2', descricao: 'Teste de Vontade' },
+            payload: {
+              destinatario_conta_id: 'conta-2',
+              destinatario_nome_personagem: 'Thorin',
+              descricao: 'Teste de Vontade',
+            },
             criado_em: '2026-01-01T00:03:00.000Z',
           },
         })
       }
     })
 
-    await result.current.pedirRolagem({ destinatarioContaId: 'conta-2', descricao: 'Teste de Vontade' })
+    const evento = await result.current.pedirRolagem({
+      destinatarioContaId: 'conta-2',
+      descricao: 'Teste de Vontade',
+    })
+
+    expect(evento.payload).toMatchObject({ destinatarioNomePersonagem: 'Thorin' })
 
     expect(fake.emit).toHaveBeenCalledWith(
       'rolagem:pedir',

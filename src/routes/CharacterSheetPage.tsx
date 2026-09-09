@@ -72,7 +72,7 @@ export function CharacterSheetPage() {
   const [geralAoVivo, setGeralAoVivo] = useState<FichaGeral | null>(null)
   const [falhasDeSave, setFalhasDeSave] = useState<string[]>([])
   const [erroRolagem, setErroRolagem] = useState<string | null>(null)
-  const { eventos, status, emitirRolagem } = useCampaignEvents(id)
+  const { eventos, status, emitirRolagem, reconectar } = useCampaignEvents(id)
   // Decidido uma única vez a partir do GET inicial — não recomputado a cada
   // sync de autosave, para não arrancar o usuário de volta para a trilha só
   // porque um campo de Geral ficou temporariamente vazio durante uma edição.
@@ -241,9 +241,20 @@ export function CharacterSheetPage() {
       )}
       {aba === 'Notas' && <NotasTab fichaId={ficha.id} notas={ficha.notas} onSaved={atualizarSecao('notas')} />}
 
-      <EventosMesaPanel eventos={eventos} status={status} />
-      <RolagemLivreForm onRolar={(notacao) => emitirRolagem({ notacao })} disabled={status === 'indisponivel'} />
-      {erroRolagem && <p role="alert">{erroRolagem}</p>}
+      <EventosMesaPanel eventos={eventos} status={status} onReconectar={reconectar} />
+      <RolagemLivreForm
+        onRolar={(notacao) => {
+          setErroRolagem(null)
+          return emitirRolagem({ notacao })
+        }}
+        onErroEnvio={setErroRolagem}
+        disabled={status === 'indisponivel'}
+      />
+      {erroRolagem && (
+        <p role="alert" className="save-status save-status--erro">
+          {erroRolagem}
+        </p>
+      )}
     </main>
   )
 }

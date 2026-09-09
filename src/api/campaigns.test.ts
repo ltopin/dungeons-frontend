@@ -40,19 +40,19 @@ describe('criarCampanha', () => {
     expect(JSON.parse(init.body)).toEqual({ nome: 'Minas de Phandelver' })
   })
 
-  it('envia o mundoId no corpo quando informado', async () => {
+  it('envia o mundo_id (snake_case) no corpo quando informado', async () => {
     const fetchMock = mockFetchJson({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre', mundoId: 'mundo-1' }, 201)
     vi.stubGlobal('fetch', fetchMock)
 
     await criarCampanha('Minas de Phandelver', undefined, 'mundo-1')
 
     const [, init] = fetchMock.mock.calls[0]
-    expect(JSON.parse(init.body)).toEqual({ nome: 'Minas de Phandelver', mundoId: 'mundo-1' })
+    expect(JSON.parse(init.body)).toEqual({ nome: 'Minas de Phandelver', mundo_id: 'mundo-1' })
   })
 })
 
 describe('vincularMundoACampanha', () => {
-  it('faz POST em /campanhas/:campanhaId/mundo com o mundoId escolhido', async () => {
+  it('faz PATCH em /campanhas/:campanhaId/mundo com o mundo_id (snake_case) escolhido', async () => {
     const fetchMock = mockFetchJson({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre', mundoId: 'mundo-2' })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -60,8 +60,8 @@ describe('vincularMundoACampanha', () => {
 
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toContain('/campanhas/camp-1/mundo')
-    expect(init.method).toBe('POST')
-    expect(JSON.parse(init.body)).toEqual({ mundoId: 'mundo-2' })
+    expect(init.method).toBe('PATCH')
+    expect(JSON.parse(init.body)).toEqual({ mundo_id: 'mundo-2' })
     expect(resultado.mundoId).toBe('mundo-2')
   })
 })

@@ -14,34 +14,55 @@ function origemRolagem(payload: EventoMesa['payload'] & { itemNome?: string | nu
 }
 
 function descreverEvento(evento: EventoMesa): { titulo: string; detalhe: string } {
-  const autor = evento.autorContaId === getContaAtual()?.id ? 'Você' : 'Um jogador'
-
   if (evento.tipo === 'rolagem_dados') {
+    const autor =
+      evento.autorContaId === getContaAtual()?.id
+        ? 'Você'
+        : evento.payload.autorNomePersonagem ?? 'Um jogador'
     return {
       titulo: `${autor} rolou ${origemRolagem(evento.payload)}`,
       detalhe: `Resultado: ${evento.payload.resultado}`,
     }
   }
 
-  const alvo = evento.payload.destinatarioContaId ? 'um jogador' : 'toda a mesa'
+  const alvo = evento.payload.destinatarioContaId
+    ? evento.payload.destinatarioNomePersonagem ?? 'um jogador'
+    : 'toda a mesa'
   return {
     titulo: `Mestre pediu uma rolagem para ${alvo}`,
     detalhe: evento.payload.descricao,
   }
 }
 
+const STATUS_CLASSE: Record<Exclude<ConexaoEventosStatus, 'conectado'>, string> = {
+  conectando: 'eventos-mesa__status--info',
+  reconectando: 'eventos-mesa__status--aviso',
+  indisponivel: 'eventos-mesa__status--erro',
+}
+
 export function EventosMesaPanel({
   eventos,
   status,
+  onReconectar,
 }: {
   eventos: EventoMesa[]
   status: ConexaoEventosStatus
+  onReconectar?: () => void
 }) {
   return (
     <section aria-label="Eventos de mesa" className="panel eventos-mesa">
       <div className="section-header">
         <h2>Eventos de mesa</h2>
-        {status !== 'conectado' && <span role="status">{ROTULO_STATUS[status]}</span>}
+        {status !== 'conectado' && (
+          <span role="status" className={`eventos-mesa__status ${STATUS_CLASSE[status]}`}>
+            {ROTULO_STATUS[status]}
+            {status === 'indisponivel' && onReconectar && (
+              <button type="button" className="save-status__retry" onClick={onReconectar}>
+                Tentar reconectar
+              </button>
+            )}
+          </span>
+        )}
       </div>
 
       {eventos.length === 0 && status === 'conectado' && (
@@ -58,7 +79,7 @@ export function EventosMesaPanel({
             return (
               <li key={evento.id}>
                 <strong>{titulo}</strong>
-                <span>{detalhe}</span>
+                <span className="eventos-mesa__detalhe">{detalhe}</span>
               </li>
             )
           })}

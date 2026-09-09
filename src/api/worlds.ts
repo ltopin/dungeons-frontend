@@ -19,12 +19,12 @@ export function criarElemento(mundoId: string, dados: DadosElemento): Promise<El
   return apiRequest<ElementoHistoria>(`/mundos/${mundoId}/elementos`, { method: 'POST', body: dados })
 }
 
-export function editarElemento(elementoId: string, dados: DadosElemento): Promise<ElementoHistoria> {
-  return apiRequest<ElementoHistoria>(`/elementos/${elementoId}`, { method: 'PATCH', body: dados })
+export function editarElemento(mundoId: string, elementoId: string, dados: DadosElemento): Promise<ElementoHistoria> {
+  return apiRequest<ElementoHistoria>(`/mundos/${mundoId}/elementos/${elementoId}`, { method: 'PATCH', body: dados })
 }
 
-export function publicarElemento(elementoId: string): Promise<ElementoHistoria> {
-  return apiRequest<ElementoHistoria>(`/elementos/${elementoId}/publicar`, { method: 'POST' })
+export function publicarElemento(mundoId: string, elementoId: string): Promise<ElementoHistoria> {
+  return apiRequest<ElementoHistoria>(`/mundos/${mundoId}/elementos/${elementoId}/publicar`, { method: 'POST' })
 }
 
 export function listarElementosDoMundo(mundoId: string): Promise<ElementoHistoria[]> {
@@ -32,5 +32,5 @@ export function listarElementosDoMundo(mundoId: string): Promise<ElementoHistori
 }
 
 export function listarElementosPublicadosDaCampanha(campanhaId: string): Promise<ElementoHistoria[]> {
-  return apiRequest<ElementoHistoria[]>(`/campanhas/${campanhaId}/historia`)
+  return apiRequest<ElementoHistoria[]>(`/campanhas/${campanhaId}/mundo/elementos`)
 }

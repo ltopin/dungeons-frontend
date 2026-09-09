@@ -70,8 +70,8 @@ export function WorldPage() {
     setSalvando(true)
     try {
       const dados = { titulo: titulo.trim(), categoria: categoria.trim(), conteudo: conteudo.trim() }
-      if (elementoEditando) {
-        const atualizado = await editarElemento(elementoEditando.id, dados)
+      if (elementoEditando && mundoId) {
+        const atualizado = await editarElemento(mundoId, elementoEditando.id, dados)
         setElementos((atual) => (atual ? atual.map((el) => (el.id === atualizado.id ? atualizado : el)) : atual))
       } else if (mundoId) {
         const criado = await criarElemento(mundoId, dados)
@@ -86,9 +86,10 @@ export function WorldPage() {
   }
 
   async function handlePublicar(elementoId: string) {
+    if (!mundoId) return
     setPublicandoId(elementoId)
     try {
-      const atualizado = await publicarElemento(elementoId)
+      const atualizado = await publicarElemento(mundoId, elementoId)
       setElementos((atual) => (atual ? atual.map((el) => (el.id === atualizado.id ? atualizado : el)) : atual))
     } catch {
       setErro('Não foi possível publicar este elemento.')

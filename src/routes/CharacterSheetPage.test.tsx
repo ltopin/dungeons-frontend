@@ -50,6 +50,7 @@ beforeEach(async () => {
     status: 'conectado',
     emitirRolagem: vi.fn().mockResolvedValue({}),
     pedirRolagem: vi.fn().mockResolvedValue({}),
+    reconectar: vi.fn(),
   })
 })
 
@@ -439,6 +440,7 @@ describe('eventos de mesa', () => {
       status: 'conectado',
       emitirRolagem,
       pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
     })
 
     const user = userEvent.setup()
@@ -472,12 +474,14 @@ describe('eventos de mesa', () => {
             dados: [17],
             bonus: 10,
             resultado: 27,
+            autorNomePersonagem: null,
           },
         },
       ],
       status: 'conectado',
       emitirRolagem: vi.fn(),
       pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
     })
 
     render(
@@ -498,6 +502,7 @@ describe('eventos de mesa', () => {
       status: 'indisponivel',
       emitirRolagem: vi.fn(),
       pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
     })
 
     render(

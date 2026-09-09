@@ -69,23 +69,23 @@ describe('criarElemento', () => {
 })
 
 describe('editarElemento', () => {
-  it('faz PATCH em /elementos/:elementoId com os campos editados', async () => {
+  it('faz PATCH em /mundos/:mundoId/elementos/:elementoId com os campos editados', async () => {
     const fetchMock = mockFetchJson(
       { id: 'elem-1', mundoId: 'mundo-1', titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto atualizado.', status: 'publicado' },
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await editarElemento('elem-1', { titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto atualizado.' })
+    await editarElemento('mundo-1', 'elem-1', { titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto atualizado.' })
 
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toContain('/elementos/elem-1')
+    expect(url).toContain('/mundos/mundo-1/elementos/elem-1')
     expect(init.method).toBe('PATCH')
     expect(JSON.parse(init.body)).toEqual({ titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto atualizado.' })
   })
 })
 
 describe('publicarElemento', () => {
-  it('faz POST em /elementos/:elementoId/publicar', async () => {
+  it('faz POST em /mundos/:mundoId/elementos/:elementoId/publicar', async () => {
     const fetchMock = mockFetchJson({
       id: 'elem-1',
       mundoId: 'mundo-1',
@@ -96,10 +96,10 @@ describe('publicarElemento', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const resultado = await publicarElemento('elem-1')
+    const resultado = await publicarElemento('mundo-1', 'elem-1')
 
     const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toContain('/elementos/elem-1/publicar')
+    expect(url).toContain('/mundos/mundo-1/elementos/elem-1/publicar')
     expect(init.method).toBe('POST')
     expect(resultado.status).toBe('publicado')
   })
@@ -122,7 +122,7 @@ describe('listarElementosDoMundo', () => {
 })
 
 describe('listarElementosPublicadosDaCampanha', () => {
-  it('busca em /campanhas/:campanhaId/historia', async () => {
+  it('busca em /campanhas/:campanhaId/mundo/elementos', async () => {
     const fetchMock = mockFetchJson([
       { id: 'elem-1', mundoId: 'mundo-1', titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto.', status: 'publicado' },
     ])
@@ -131,7 +131,7 @@ describe('listarElementosPublicadosDaCampanha', () => {
     const resultado = await listarElementosPublicadosDaCampanha('camp-1')
 
     const [url] = fetchMock.mock.calls[0]
-    expect(url).toContain('/campanhas/camp-1/historia')
+    expect(url).toContain('/campanhas/camp-1/mundo/elementos')
     expect(resultado).toEqual([
       { id: 'elem-1', mundoId: 'mundo-1', titulo: 'Bane', categoria: 'Divindade', conteudo: 'Texto.', status: 'publicado' },
     ])

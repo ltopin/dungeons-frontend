@@ -981,6 +981,95 @@ main {
   border-color: var(--gold);
 }
 
+/* Rolar (aba de item e Rolagem Livre) — mesmo botão de ação em todo lugar */
+.ficha-sheet .roll-btn {
+  background: var(--gold);
+  color: var(--text-dark);
+  border: 1px solid var(--gold);
+  border-radius: 5px;
+  padding: 6px 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.ficha-sheet .roll-btn:hover:not(:disabled) {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+}
+
+.ficha-sheet .roll-btn:disabled {
+  background: var(--panel-2);
+  border-color: var(--line);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.ficha-sheet .roll-btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 2px;
+}
+
+/* Rolagem livre — formulário de notação avulsa, ao lado do feed de eventos */
+.ficha-sheet .rolagem-livre__form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ficha-sheet .rolagem-livre__row {
+  display: flex;
+  gap: 8px;
+}
+
+.ficha-sheet .rolagem-livre__row input {
+  flex: 1;
+}
+
+.ficha-sheet .rolagem-livre .save-status--erro {
+  display: block;
+  margin: 8px 0 0;
+}
+
+/* Eventos de mesa — status de conexão e feed */
+.ficha-sheet .eventos-mesa__status--info {
+  color: var(--text-dim);
+}
+
+.ficha-sheet .eventos-mesa__status--aviso {
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .eventos-mesa__status--erro {
+  color: var(--blood-bright);
+}
+
+.ficha-sheet .eventos-mesa__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ficha-sheet .eventos-mesa__list li {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ficha-sheet .eventos-mesa__detalhe {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
 .ficha-sheet .icon-btn {
   background: var(--panel);
   border: 1px solid var(--line);

@@ -87,7 +87,7 @@ describe('WorldPage', () => {
     await user.type(conteudoInput, 'Texto atualizado.')
     await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
 
-    expect(worldsMock.editarElemento).toHaveBeenCalledWith('elem-1', {
+    expect(worldsMock.editarElemento).toHaveBeenCalledWith('mundo-1', 'elem-1', {
       titulo: 'Bane',
       categoria: 'Divindade',
       conteudo: 'Texto atualizado.',
@@ -125,7 +125,7 @@ describe('WorldPage', () => {
     const item = (await screen.findByText('Bane')).closest('li')!
     await user.click(within(item).getByRole('button', { name: 'Publicar' }))
 
-    expect(worldsMock.publicarElemento).toHaveBeenCalledWith('elem-1')
+    expect(worldsMock.publicarElemento).toHaveBeenCalledWith('mundo-1', 'elem-1')
     expect(await within(item).findByText('Publicado')).toBeInTheDocument()
     expect(within(item).queryByRole('button', { name: 'Publicar' })).not.toBeInTheDocument()
   })

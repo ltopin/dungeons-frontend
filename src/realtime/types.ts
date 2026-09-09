@@ -15,10 +15,12 @@ export interface RolagemDadosPayload {
   dados: number[]
   bonus: number
   resultado: number
+  autorNomePersonagem: string | null
 }
 
 export interface PedidoRolagemPayload {
   destinatarioContaId: string | null
+  destinatarioNomePersonagem: string | null
   descricao: string
 }
 
@@ -51,12 +53,14 @@ function mapRolagemDadosPayload(payload: Record<string, unknown>): RolagemDadosP
     dados: Array.isArray(payload.dados) ? (payload.dados as number[]) : [],
     bonus: Number(payload.bonus ?? 0),
     resultado: Number(payload.resultado ?? 0),
+    autorNomePersonagem: (payload.autor_nome_personagem as string | null) ?? null,
   }
 }
 
 function mapPedidoRolagemPayload(payload: Record<string, unknown>): PedidoRolagemPayload {
   return {
     destinatarioContaId: (payload.destinatario_conta_id as string | null) ?? null,
+    destinatarioNomePersonagem: (payload.destinatario_nome_personagem as string | null) ?? null,
     descricao: String(payload.descricao ?? ''),
   }
 }
