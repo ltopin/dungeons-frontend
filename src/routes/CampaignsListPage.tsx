@@ -73,9 +73,14 @@ export function CampaignsListPage() {
     <main className="campaigns-screen">
       <header className="campaigns-screen__masthead">
         <h1 id="campanhas-heading">Suas campanhas</h1>
-        <button type="button" className="campaigns-screen__logout" onClick={sairDaConta}>
-          Sair da conta
-        </button>
+        <div className="campaigns-screen__masthead-actions">
+          <Link to="/mundos" className="campaigns-screen__logout">
+            Meus mundos
+          </Link>
+          <button type="button" className="campaigns-screen__logout" onClick={sairDaConta}>
+            Sair da conta
+          </button>
+        </div>
       </header>
 
       {boasVindas && (

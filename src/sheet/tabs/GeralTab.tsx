@@ -1,16 +1,15 @@
+import { useEffect } from 'react'
 import type { FichaGeral } from '../../api/types'
 import { useSectionAutosave } from '../useSectionAutosave'
 import { SaveStatusBadge } from '../SaveStatusBadge'
-import { SectionTitle, Seal } from '../theme'
+import { Field, SectionTitle, Seal } from '../theme'
+import { ABILIDADES, fmt, mod } from '../abilityMod'
 
-const ATRIBUTOS: Array<{ key: keyof FichaGeral; label: string; abbr: string }> = [
-  { key: 'str', label: 'Força', abbr: 'STR' },
-  { key: 'dex', label: 'Destreza', abbr: 'DEX' },
-  { key: 'con', label: 'Constituição', abbr: 'CON' },
-  { key: 'int', label: 'Inteligência', abbr: 'INT' },
-  { key: 'wis', label: 'Sabedoria', abbr: 'WIS' },
-  { key: 'cha', label: 'Carisma', abbr: 'CHA' },
-]
+const ATRIBUTOS: Array<{ key: keyof FichaGeral; label: string; abbr: string }> = ABILIDADES.map((a) => ({
+  key: a.key,
+  label: a.label,
+  abbr: a.abbr,
+}))
 
 const TEXT_FIELDS: Array<{ key: keyof FichaGeral; label: string }> = [
   { key: 'nomePersonagem', label: 'Nome do personagem' },
@@ -25,11 +24,29 @@ const TEXT_FIELDS: Array<{ key: keyof FichaGeral; label: string }> = [
   { key: 'peso', label: 'Peso' },
 ]
 
-const mod = (score: number) => Math.floor((Number(score || 10) - 10) / 2)
-const fmt = (m: number) => (m >= 0 ? `+${m}` : `${m}`)
+export function GeralTab({
+  fichaId,
+  geral,
+  onChange,
+  onSaved,
+}: {
+  fichaId: string
+  geral: FichaGeral
+  onChange?: (geral: FichaGeral) => void
+  onSaved?: (geral: FichaGeral) => void
+}) {
+  const { value, updateField, status, retry } = useSectionAutosave<FichaGeral>(
+    fichaId,
+    'geral',
+    geral,
+    undefined,
+    onSaved,
+  )
 
-export function GeralTab({ fichaId, geral }: { fichaId: string; geral: FichaGeral }) {
-  const { value, updateField, status, retry } = useSectionAutosave<FichaGeral>(fichaId, 'geral', geral)
+  useEffect(() => {
+    onChange?.(value)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
 
   return (
     <section aria-label="Geral" className="panel">
@@ -54,14 +71,13 @@ export function GeralTab({ fichaId, geral }: { fichaId: string; geral: FichaGera
       <SectionTitle accent="gold">Identidade</SectionTitle>
       <div className="field-grid">
         {TEXT_FIELDS.map(({ key, label }) => (
-          <label key={key}>
-            <span>{label}</span>
+          <Field key={key} label={label}>
             <input
               type="text"
               value={value[key] as string}
               onChange={(e) => updateField(key, e.target.value as FichaGeral[typeof key])}
             />
-          </label>
+          </Field>
         ))}
       </div>
     </section>

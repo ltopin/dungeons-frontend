@@ -1,11 +1,39 @@
-import type { FichaPericia } from '../../api/types'
+import type { FichaGeral, FichaPericia } from '../../api/types'
 import { useListSection } from '../useListSection'
 import { SaveStatusBadge } from '../SaveStatusBadge'
-import { IconButton } from '../theme'
+import { ConfirmIconButton, Field } from '../theme'
+import { ABILIDADES, atributoScore, fmt } from '../abilityMod'
+import { attributeModifier } from '../../rules/attributeMods'
+import { skillTotal } from '../../rules/skills'
 
-export function PericiasTab({ fichaId, pericias }: { fichaId: string; pericias: FichaPericia[] }) {
+export function PericiasTab({
+  fichaId,
+  pericias,
+  geral,
+  onItemsChange,
+  onRolar,
+}: {
+  fichaId: string
+  pericias: FichaPericia[]
+  geral: FichaGeral
+  onItemsChange?: (pericias: FichaPericia[]) => void
+  onRolar?: (itemId: string) => void
+}) {
   const { items, addItem, removeItem, updateItemField, statusById, retryItem, createError } =
-    useListSection<FichaPericia>(fichaId, 'pericias', pericias)
+    useListSection<FichaPericia>(
+      fichaId,
+      'pericias',
+      pericias,
+      (pericia) => ({
+        total: skillTotal({
+          graduacoes: Number(pericia.graduacoes || 0),
+          atributoMod: attributeModifier(atributoScore(geral, pericia.atributo)),
+          periciaDeClasse: pericia.periciaDeClasse,
+          outros: Number(pericia.outros || 0),
+        }),
+      }),
+      onItemsChange,
+    )
 
   return (
     <section aria-label="Perícias" className="panel">
@@ -14,64 +42,92 @@ export function PericiasTab({ fichaId, pericias }: { fichaId: string; pericias: 
         <button
           className="add-btn"
           type="button"
-          onClick={() =>
-            addItem({ nome: 'Nova perícia', atributo: '', periciaDeClasse: false, graduacoes: 0, outros: 0 })
-          }
+          onClick={() => addItem({ nome: 'Nova perícia', atributo: '', periciaDeClasse: false, graduacoes: 0, outros: 0 })}
         >
           Adicionar perícia
         </button>
       </div>
       {createError && <p role="alert">{createError}</p>}
-      <p className="hint">A estrela marca perícia de classe.</p>
+      {items.length === 0 && <p className="hint">Nenhuma perícia cadastrada ainda — adicione a primeira.</p>}
 
       <ul className="list-section">
         {items.map((pericia) => (
           <li key={pericia.id}>
-            <label title="Perícia de classe">
-              <input
-                className="star-toggle"
-                type="checkbox"
-                checked={pericia.periciaDeClasse}
-                onChange={(e) => updateItemField(pericia.id, 'periciaDeClasse', e.target.checked)}
+            <div className="field-grid five">
+              <Field label="Nome">
+                <input
+                  type="text"
+                  value={pericia.nome}
+                  onChange={(e) => updateItemField(pericia.id, 'nome', e.target.value)}
+                />
+              </Field>
+              <Field label="Atributo">
+                <select
+                  value={pericia.atributo ?? ''}
+                  onChange={(e) => updateItemField(pericia.id, 'atributo', e.target.value)}
+                >
+                  <option value="">—</option>
+                  {ABILIDADES.map((a) => (
+                    <option key={a.key} value={a.key}>
+                      {a.abbr}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="De classe" title="Perícia de classe">
+                <input
+                  type="checkbox"
+                  checked={pericia.periciaDeClasse}
+                  onChange={(e) => updateItemField(pericia.id, 'periciaDeClasse', e.target.checked)}
+                />
+              </Field>
+              <Field label="Graduações">
+                <input
+                  type="number"
+                  value={pericia.graduacoes}
+                  onChange={(e) => updateItemField(pericia.id, 'graduacoes', Number(e.target.value))}
+                />
+              </Field>
+              <Field label="Outros">
+                <input
+                  type="number"
+                  value={pericia.outros}
+                  onChange={(e) => updateItemField(pericia.id, 'outros', Number(e.target.value))}
+                />
+              </Field>
+            </div>
+            <div className="list-item-actions">
+              <div
+                className="save-total"
+                style={{ marginRight: 'auto' }}
+                title="Total (graduações + atributo + classe + outros)"
+              >
+                Total {fmt(
+                  skillTotal({
+                    graduacoes: Number(pericia.graduacoes || 0),
+                    atributoMod: attributeModifier(atributoScore(geral, pericia.atributo)),
+                    periciaDeClasse: pericia.periciaDeClasse,
+                    outros: Number(pericia.outros || 0),
+                  }),
+                )}
+              </div>
+              {onRolar && (
+                <button
+                  type="button"
+                  className="roll-btn"
+                  aria-label={`Rolar ${pericia.nome}`}
+                  onClick={() => onRolar(pericia.id)}
+                >
+                  Rolar
+                </button>
+              )}
+              <SaveStatusBadge status={statusById[pericia.id] ?? 'idle'} onRetry={() => retryItem(pericia.id)} />
+              <ConfirmIconButton
+                title={`Remover perícia ${pericia.nome}`}
+                confirmLabel="Remover?"
+                onConfirm={() => removeItem(pericia.id)}
               />
-              <span>Perícia de classe</span>
-            </label>
-            <label>
-              <span>Nome</span>
-              <input
-                type="text"
-                value={pericia.nome}
-                onChange={(e) => updateItemField(pericia.id, 'nome', e.target.value)}
-              />
-            </label>
-            <label>
-              <span>Atributo</span>
-              <input
-                type="text"
-                value={pericia.atributo}
-                onChange={(e) => updateItemField(pericia.id, 'atributo', e.target.value)}
-              />
-            </label>
-            <label>
-              <span>Graduações</span>
-              <input
-                type="number"
-                value={pericia.graduacoes}
-                onChange={(e) => updateItemField(pericia.id, 'graduacoes', Number(e.target.value))}
-              />
-            </label>
-            <label>
-              <span>Outros</span>
-              <input
-                type="number"
-                value={pericia.outros}
-                onChange={(e) => updateItemField(pericia.id, 'outros', Number(e.target.value))}
-              />
-            </label>
-            <SaveStatusBadge status={statusById[pericia.id] ?? 'idle'} onRetry={() => retryItem(pericia.id)} />
-            <IconButton danger title={`Remover perícia ${pericia.nome}`} onClick={() => removeItem(pericia.id)}>
-              ✕
-            </IconButton>
+            </div>
           </li>
         ))}
       </ul>

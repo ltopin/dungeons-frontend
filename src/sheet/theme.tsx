@@ -1,7 +1,24 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 export function SectionTitle({ children, accent }: { children: ReactNode; accent?: 'gold' | 'blood' | 'blue' }) {
   return <div className={`section-title ${accent ? 'accent-' + accent : ''}`}>{children}</div>
+}
+
+/**
+ * Um campo rotulado (label + controle), sempre com a mesma marcação. Existe
+ * para que toda aba use exatamente a mesma estrutura de label — evita o bug
+ * de abas divergentes que motivou este componente: algumas envolviam campos
+ * em `.field-grid`/`<form>` (span empilhado sobre o input, com espaçamento) e
+ * outras renderizavam `<label>` soltos, que caem no `display: inline` padrão
+ * do navegador e ficam com o texto colado no controle.
+ */
+export function Field({ label, children, title }: { label: string; children: ReactNode; title?: string }) {
+  return (
+    <label className="field" title={title}>
+      <span>{label}</span>
+      {children}
+    </label>
+  )
 }
 
 export function NumBox({
@@ -9,11 +26,13 @@ export function NumBox({
   value,
   onChange,
   width = 56,
+  readOnly,
 }: {
   label: string
   value: string | number
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   width?: number
+  readOnly?: boolean
 }) {
   return (
     <label className="numbox">
@@ -23,7 +42,8 @@ export function NumBox({
         inputMode="numeric"
         style={{ width }}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        readOnly={readOnly}
+        onChange={readOnly ? undefined : (e) => onChange?.(e.target.value)}
       />
       <span className="numbox-label">{label}</span>
     </label>
@@ -55,11 +75,11 @@ export function Seal({
 
 export function Dial({ label, sub, children }: { label: string; sub?: string; children: ReactNode }) {
   return (
-    <div className="dial">
+    <label className="dial">
       {children}
       <div className="dial-label">{label}</div>
       {sub && <div className="dial-sub">{sub}</div>}
-    </div>
+    </label>
   )
 }
 
@@ -75,8 +95,66 @@ export function IconButton({
   danger?: boolean
 }) {
   return (
-    <button type="button" className={`icon-btn ${danger ? 'danger' : ''}`} onClick={onClick} title={title}>
+    <button
+      type="button"
+      className={`icon-btn ${danger ? 'danger' : ''}`}
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+    >
       {children}
     </button>
+  )
+}
+
+/**
+ * Botão de excluir com confirmação dentro do próprio tema, no lugar de
+ * `window.confirm()`: um clique troca o ícone por "confirmar/cancelar"
+ * inline, sem interromper a página com um diálogo nativo do sistema.
+ */
+export function ConfirmIconButton({
+  onConfirm,
+  title,
+  confirmLabel,
+}: {
+  onConfirm: () => void
+  title: string
+  confirmLabel: string
+}) {
+  const [confirmando, setConfirmando] = useState(false)
+
+  if (confirmando) {
+    return (
+      <span className="confirm-inline">
+        <span className="confirm-inline-label">{confirmLabel}</span>
+        <button
+          type="button"
+          className="icon-btn danger"
+          onClick={() => {
+            setConfirmando(false)
+            onConfirm()
+          }}
+          title="Confirmar remoção"
+          aria-label="Confirmar remoção"
+        >
+          ✓
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => setConfirmando(false)}
+          title="Cancelar"
+          aria-label="Cancelar remoção"
+        >
+          ✕
+        </button>
+      </span>
+    )
+  }
+
+  return (
+    <IconButton danger title={title} onClick={() => setConfirmando(true)}>
+      ✕
+    </IconButton>
   )
 }

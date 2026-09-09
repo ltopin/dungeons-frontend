@@ -2,7 +2,7 @@
 
 - [x] 1.1 Em `src/api/types.ts`, `CampanhaDisponivel` ganha `descricao?: string` e `mestre_nome?: string`
 - [x] 1.2 Em `src/api/campaigns.ts`, `criarCampanha` passa a aceitar um segundo parâmetro opcional `descricao?: string` e enviá-lo no corpo do `POST /campanhas`
-- [ ] 1.3 Atualizar `src/api/campaigns.test.ts` para cobrir `criarCampanha` com e sem descrição
+- [x] 1.3 Atualizar `src/api/campaigns.test.ts` para cobrir `criarCampanha` com e sem descrição
 
 ## 2. Formulário de criar campanha (NewCampaignPage)
 

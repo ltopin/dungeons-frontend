@@ -6,20 +6,24 @@ import { App } from '../App'
 import { sairDaConta } from '../auth/session'
 import * as campaignsApi from '../api/campaigns'
 import * as sheetsApi from '../api/sheets'
+import * as worldsApi from '../api/worlds'
 import { criarFichaFake } from '../test/fixtures'
 import { autenticarComoContaFake } from '../test/session'
 
 vi.mock('../api/accounts')
 vi.mock('../api/campaigns')
 vi.mock('../api/sheets')
+vi.mock('../api/worlds')
 
 const campanhasMock = vi.mocked(campaignsApi)
 const fichasMock = vi.mocked(sheetsApi)
+const worldsMock = vi.mocked(worldsApi)
 
 beforeEach(async () => {
   sairDaConta()
   await autenticarComoContaFake({ nome: 'Mestre Teste' })
   vi.clearAllMocks()
+  worldsMock.listarMundos.mockResolvedValue([])
 })
 
 function renderApp(initialPath: string) {
@@ -53,6 +57,52 @@ describe('criar campanha', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('obrigatório')
     expect(campanhasMock.criarCampanha).not.toHaveBeenCalled()
+  })
+})
+
+describe('seletor de mundo ao criar campanha', () => {
+  it('omite o seletor quando o usuário não tem nenhum mundo', async () => {
+    worldsMock.listarMundos.mockResolvedValue([])
+    renderApp('/campanhas/nova')
+
+    await screen.findByLabelText('Nome da campanha')
+    expect(screen.queryByLabelText('Mundo desta campanha')).not.toBeInTheDocument()
+  })
+
+  it('envia o mundoId escolhido ao criar a campanha', async () => {
+    const user = userEvent.setup()
+    worldsMock.listarMundos.mockResolvedValue([{ id: 'mundo-1', nome: 'Forgotten Realms' }])
+    campanhasMock.criarCampanha.mockResolvedValue({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre' })
+    campanhasMock.obterCampanha.mockResolvedValue({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre' })
+    campanhasMock.listarFichasDaCampanha.mockResolvedValue([])
+
+    renderApp('/campanhas/nova')
+
+    await user.type(screen.getByLabelText('Nome da campanha'), 'Minas de Phandelver')
+    await user.selectOptions(await screen.findByLabelText('Mundo desta campanha'), 'mundo-1')
+    await user.click(screen.getByRole('button', { name: 'Criar campanha' }))
+
+    await waitFor(() =>
+      expect(campanhasMock.criarCampanha).toHaveBeenCalledWith('Minas de Phandelver', undefined, 'mundo-1'),
+    )
+  })
+
+  it('cria normalmente sem selecionar nenhum mundo', async () => {
+    const user = userEvent.setup()
+    worldsMock.listarMundos.mockResolvedValue([{ id: 'mundo-1', nome: 'Forgotten Realms' }])
+    campanhasMock.criarCampanha.mockResolvedValue({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre' })
+    campanhasMock.obterCampanha.mockResolvedValue({ id: 'camp-1', nome: 'Minas de Phandelver', role: 'mestre' })
+    campanhasMock.listarFichasDaCampanha.mockResolvedValue([])
+
+    renderApp('/campanhas/nova')
+
+    await user.type(screen.getByLabelText('Nome da campanha'), 'Minas de Phandelver')
+    await screen.findByLabelText('Mundo desta campanha')
+    await user.click(screen.getByRole('button', { name: 'Criar campanha' }))
+
+    await waitFor(() =>
+      expect(campanhasMock.criarCampanha).toHaveBeenCalledWith('Minas de Phandelver', undefined, undefined),
+    )
   })
 })
 

@@ -10,8 +10,19 @@ import { PericiasReadOnly } from '../sheet/readonly/PericiasReadOnly'
 import { MagiasReadOnly } from '../sheet/readonly/MagiasReadOnly'
 import { InventarioReadOnly } from '../sheet/readonly/InventarioReadOnly'
 import { NotasReadOnly } from '../sheet/readonly/NotasReadOnly'
+import { FamiliarReadOnly } from '../sheet/readonly/FamiliarReadOnly'
 
-const ABAS = ['Geral', 'Combate', 'Talentos', 'Ataques', 'Perícias', 'Magias', 'Inventário', 'Notas'] as const
+const ABAS = [
+  'Geral',
+  'Combate',
+  'Talentos',
+  'Ataques',
+  'Perícias',
+  'Magias',
+  'Inventário',
+  'Familiar',
+  'Notas',
+] as const
 type Aba = (typeof ABAS)[number]
 
 export function CharacterSheetReadOnlyPage() {
@@ -65,14 +76,20 @@ export function CharacterSheetReadOnlyPage() {
       </nav>
 
       {aba === 'Geral' && <GeralReadOnly geral={ficha.geral} />}
-      {aba === 'Combate' && <CombateReadOnly combate={ficha.combate} />}
+      {aba === 'Combate' && <CombateReadOnly combate={ficha.combate} geral={ficha.geral} />}
       {aba === 'Talentos' && <TalentosReadOnly talentos={ficha.talentos} />}
       {aba === 'Ataques' && <AtaquesReadOnly ataques={ficha.ataques} />}
       {aba === 'Perícias' && <PericiasReadOnly pericias={ficha.pericias} />}
       {aba === 'Magias' && (
-        <MagiasReadOnly magiasConfig={ficha.magiasConfig} magiaNiveis={ficha.magiaNiveis} magias={ficha.magias} />
+        <MagiasReadOnly
+          magiasConfig={ficha.magiasConfig}
+          magiaNiveis={ficha.magiaNiveis}
+          magias={ficha.magias}
+          geral={ficha.geral}
+        />
       )}
       {aba === 'Inventário' && <InventarioReadOnly moedas={ficha.moedas} itens={ficha.itens} />}
+      {aba === 'Familiar' && <FamiliarReadOnly familiar={ficha.familiar} />}
       {aba === 'Notas' && <NotasReadOnly notas={ficha.notas} />}
     </main>
   )

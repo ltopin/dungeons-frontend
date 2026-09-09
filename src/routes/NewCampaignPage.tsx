@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { criarCampanha } from '../api/campaigns'
+import { listarMundos } from '../api/worlds'
 import { ApiError } from '../api/client'
+import type { Mundo } from '../api/types'
 
 export function NewCampaignPage() {
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [mundos, setMundos] = useState<Mundo[]>([])
+  const [mundoId, setMundoId] = useState('')
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(false)
   const navigate = useNavigate()
@@ -14,6 +18,12 @@ export function NewCampaignPage() {
   useEffect(() => {
     if (erro) erroRef.current?.focus()
   }, [erro])
+
+  useEffect(() => {
+    listarMundos()
+      .then(setMundos)
+      .catch(() => setMundos([]))
+  }, [])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -24,7 +34,7 @@ export function NewCampaignPage() {
     setErro(null)
     setCarregando(true)
     try {
-      const campanha = await criarCampanha(nome.trim(), descricao.trim() || undefined)
+      const campanha = await criarCampanha(nome.trim(), descricao.trim() || undefined, mundoId || undefined)
       navigate(`/campanhas/${campanha.id}`, { state: { campanhaCriada: true } })
     } catch (err) {
       if (err instanceof ApiError) {
@@ -76,6 +86,21 @@ export function NewCampaignPage() {
               onChange={(e) => setDescricao(e.target.value)}
             />
           </div>
+
+          {mundos.length > 0 && (
+            <div className="auth-screen__field">
+              <label htmlFor="nova-campanha-mundo">Mundo desta campanha</label>
+              <select id="nova-campanha-mundo" value={mundoId} onChange={(e) => setMundoId(e.target.value)}>
+                <option value="">Nenhum</option>
+                {mundos.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.nome}
+                  </option>
+                ))}
+              </select>
+              <p className="auth-screen__hint">Opcional. Você pode vincular ou trocar depois pelo dashboard.</p>
+            </div>
+          )}
 
           {erro && (
             <p ref={erroRef} role="alert" tabIndex={-1} className="auth-screen__error">

@@ -8,6 +8,11 @@ import { NewCampaignPage } from './routes/NewCampaignPage'
 import { CampaignPage } from './routes/CampaignPage'
 import { CharacterSheetPage } from './routes/CharacterSheetPage'
 import { CharacterSheetReadOnlyPage } from './routes/CharacterSheetReadOnlyPage'
+import { CharacterWizardPage } from './wizard/CharacterWizardPage'
+import { WorldsListPage } from './routes/WorldsListPage'
+import { NewWorldPage } from './routes/NewWorldPage'
+import { WorldPage } from './routes/WorldPage'
+import { CampaignLorePage } from './routes/CampaignLorePage'
 
 export function App() {
   return (
@@ -48,10 +53,50 @@ export function App() {
           }
         />
         <Route
+          path="/campanhas/:id/ficha/criar"
+          element={
+            <RequireSession>
+              <CharacterWizardPage />
+            </RequireSession>
+          }
+        />
+        <Route
           path="/campanhas/:id/fichas/:fichaId"
           element={
             <RequireSession>
               <CharacterSheetReadOnlyPage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/campanhas/:id/historia"
+          element={
+            <RequireSession>
+              <CampaignLorePage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/mundos"
+          element={
+            <RequireSession>
+              <WorldsListPage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/mundos/novo"
+          element={
+            <RequireSession>
+              <NewWorldPage />
+            </RequireSession>
+          }
+        />
+        <Route
+          path="/mundos/:mundoId"
+          element={
+            <RequireSession>
+              <WorldPage />
             </RequireSession>
           }
         />

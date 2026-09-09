@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listarFichasDaCampanha } from '../api/campaigns'
-import type { Campanha, FichaResumo } from '../api/types'
+import { listarFichasDaCampanha, vincularMundoACampanha } from '../api/campaigns'
+import { listarMundos } from '../api/worlds'
+import type { Campanha, FichaResumo, Mundo } from '../api/types'
+import { useCampaignEvents } from '../realtime/useCampaignEvents'
+import { EventosMesaPanel } from '../realtime/EventosMesaPanel'
+import { PedirRolagemForm } from '../realtime/PedirRolagemForm'
 
 export function MasterDashboard({
   campanha,
@@ -13,10 +17,41 @@ export function MasterDashboard({
   const [fichas, setFichas] = useState<FichaResumo[] | null>(null)
   const [erroFichas, setErroFichas] = useState<string | null>(null)
   const erroFichasRef = useRef<HTMLParagraphElement>(null)
+  const { eventos, status, pedirRolagem } = useCampaignEvents(campanha.id)
+  const [erroPedido, setErroPedido] = useState<string | null>(null)
+
+  const [mundos, setMundos] = useState<Mundo[]>([])
+  const [mundoIdAtual, setMundoIdAtual] = useState(campanha.mundoId)
+  const [mundoSelecionado, setMundoSelecionado] = useState('')
+  const [vinculando, setVinculando] = useState(false)
+  const [erroVincular, setErroVincular] = useState<string | null>(null)
 
   useEffect(() => {
     if (erroFichas) erroFichasRef.current?.focus()
   }, [erroFichas])
+
+  useEffect(() => {
+    listarMundos()
+      .then(setMundos)
+      .catch(() => setMundos([]))
+  }, [])
+
+  const mundoAtual = mundos.find((m) => m.id === mundoIdAtual) ?? null
+
+  async function handleVincularMundo() {
+    if (!mundoSelecionado) return
+    setErroVincular(null)
+    setVinculando(true)
+    try {
+      const atualizada = await vincularMundoACampanha(campanha.id, mundoSelecionado)
+      setMundoIdAtual(atualizada.mundoId)
+      setMundoSelecionado('')
+    } catch {
+      setErroVincular('Não foi possível vincular o mundo agora. Tente novamente em instantes.')
+    } finally {
+      setVinculando(false)
+    }
+  }
 
   function carregarFichas() {
     setErroFichas(null)
@@ -45,6 +80,57 @@ export function MasterDashboard({
           Campanha criada! Seus jogadores já podem encontrá-la na lista de campanhas abertas para entrar.
         </p>
       )}
+
+      <section className="campaigns-screen__panel" aria-labelledby="mundo-vinculado-heading">
+        <h2 id="mundo-vinculado-heading" className="campaigns-screen__section-title">
+          Mundo
+        </h2>
+
+        {mundoIdAtual ? (
+          <p className="campaigns-screen__hint">
+            Mundo vinculado: <Link to={`/mundos/${mundoIdAtual}`}>{mundoAtual?.nome ?? mundoIdAtual}</Link>
+          </p>
+        ) : (
+          <p className="campaigns-screen__hint">Nenhum mundo vinculado a esta campanha ainda.</p>
+        )}
+
+        {mundoIdAtual && (
+          <p className="campaigns-screen__hint">
+            <Link to={`/campanhas/${campanha.id}/historia`}>Ver história da campanha</Link>
+          </p>
+        )}
+
+        {mundos.length > 0 && (
+          <div className="campaigns-screen__masthead-actions">
+            <select
+              aria-label="Escolher mundo"
+              value={mundoSelecionado}
+              onChange={(e) => setMundoSelecionado(e.target.value)}
+            >
+              <option value="">Selecione um mundo</option>
+              {mundos.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nome}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="campaigns-screen__retry"
+              disabled={!mundoSelecionado || vinculando}
+              onClick={handleVincularMundo}
+            >
+              {vinculando ? 'Vinculando…' : mundoIdAtual ? 'Trocar mundo' : 'Vincular mundo'}
+            </button>
+          </div>
+        )}
+
+        {erroVincular && (
+          <p role="alert" className="campaigns-screen__error">
+            {erroVincular}
+          </p>
+        )}
+      </section>
 
       <section className="campaigns-screen__panel" aria-labelledby="fichas-heading">
         <h2 id="fichas-heading" className="campaigns-screen__section-title">
@@ -84,6 +170,20 @@ export function MasterDashboard({
           </ul>
         )}
       </section>
+
+      <EventosMesaPanel eventos={eventos} status={status} />
+      <PedirRolagemForm
+        jogadores={(fichas ?? []).map((f) => ({ contaId: f.contaId, nome: f.nomeJogador ?? f.nomePersonagem }))}
+        onPedir={(input) => {
+          setErroPedido(null)
+          return pedirRolagem(input).catch((err: Error) => {
+            setErroPedido(err.message)
+            throw err
+          })
+        }}
+        disabled={status === 'indisponivel'}
+      />
+      {erroPedido && <p role="alert">{erroPedido}</p>}
     </main>
   )
 }

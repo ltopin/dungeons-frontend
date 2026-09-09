@@ -32,4 +32,4 @@
 ## 5. Validação final
 
 - [x] 5.1 Rodar `npm test` e confirmar que toda a suíte passa com o novo fluxo de sessão
-- [ ] 5.2 Testar manualmente no navegador: cadastro → recarregar página (sessão mantida) → logout → login → criar campanha → sair e entrar com outra conta via código de convite
+- [x] 5.2 Testar manualmente no navegador: cadastro → recarregar página (sessão mantida) → logout → login → criar campanha → sair e entrar com outra conta via código de convite

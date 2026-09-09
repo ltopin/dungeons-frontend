@@ -9,6 +9,7 @@ const SECTION_ROUTE: Record<SecaoUmParaUm, string> = {
   'magias-config': 'magias-config',
   moedas: 'inventario-moedas',
   notas: 'notas',
+  familiar: 'familiar',
 }
 
 export async function obterFicha(fichaId: string): Promise<Ficha> {
@@ -26,6 +27,7 @@ export async function obterFicha(fichaId: string): Promise<Ficha> {
     magiaNiveis: mapListToFrontend(raw.magia_niveis),
     magias: mapListToFrontend(raw.magias),
     itens: mapListToFrontend(raw.itens),
+    familiar: raw.familiar ? mapObjectToFrontend(raw.familiar as Json) : undefined,
   }
 }
 

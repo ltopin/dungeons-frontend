@@ -13,10 +13,13 @@ export function PericiasReadOnly({ pericias }: { pericias: FichaPericia[] }) {
         {pericias.map((pericia) => (
           <li key={pericia.id}>
             <RoStar active={pericia.periciaDeClasse} title="Perícia de classe" />
-            <RoField label="Nome" value={pericia.nome} />
-            <RoField label="Atributo" value={pericia.atributo} />
-            <RoField label="Graduações" value={pericia.graduacoes} />
-            <RoField label="Outros" value={pericia.outros} />
+            <div className="field-grid five">
+              <RoField label="Nome" value={pericia.nome} />
+              <RoField label="Atributo" value={pericia.atributo} />
+              <RoField label="Graduações" value={pericia.graduacoes} />
+              <RoField label="Outros" value={pericia.outros} />
+              <RoField label="Total" value={pericia.total} />
+            </div>
           </li>
         ))}
       </ul>

@@ -13,6 +13,24 @@ export interface Campanha {
   role: Role
   /** Presente quando role === 'jogador': id da ficha do usuário atual nesta campanha. */
   fichaId?: string
+  /** Presente quando a campanha tem um mundo vinculado. */
+  mundoId?: string
+}
+
+export interface Mundo {
+  id: string
+  nome: string
+}
+
+export type StatusElementoHistoria = 'rascunho' | 'publicado'
+
+export interface ElementoHistoria {
+  id: string
+  mundoId: string
+  titulo: string
+  categoria: string
+  conteudo: string
+  status: StatusElementoHistoria
 }
 
 export interface CampanhaDisponivel {
@@ -83,6 +101,10 @@ export interface FichaCombate {
   agarraoOutros: number
   corpoACorpoOutros: number
   distanciaOutros: number
+  cmbTotal: number
+  cmbOutros: number
+  cmdTotal: number
+  cmdOutros: number
 }
 
 export interface FichaMagiasConfig {
@@ -96,16 +118,23 @@ export interface FichaMoedas {
   gp: number
   sp: number
   cp: number
+  cargaLeve: number
+  cargaMedia: number
+  cargaPesada: number
+  pesoTotalCarregado: number
 }
 
 export interface FichaNotas {
   texto: string
 }
 
+export type FichaTalentoCategoria = 'talento' | 'qualidade_especial'
+
 export interface FichaTalento {
   id: string
   nome: string
   descricao: string
+  categoria: FichaTalentoCategoria
 }
 
 export interface FichaAtaque {
@@ -116,6 +145,9 @@ export interface FichaAtaque {
   critico: string
   tipo: string
   alcance: string
+  peso: number
+  tamanho: string
+  propriedadesEspeciais: string
 }
 
 export interface FichaPericia {
@@ -125,12 +157,15 @@ export interface FichaPericia {
   periciaDeClasse: boolean
   graduacoes: number
   outros: number
+  total: number
 }
 
 export interface FichaMagiaNivel {
   id: string
   nivel: number
   espacosPorDia: number | null
+  magiasAdicionais: number | null
+  magiasConhecidas: number | null
 }
 
 export interface FichaMagia {
@@ -139,6 +174,15 @@ export interface FichaMagia {
   nome: string
   preparada: boolean
   notas: string
+  escola: string
+  tempoFormulacao: string
+  componentes: string
+  alcance: string
+  alvoEfeito: string
+  duracao: string
+  testeResistencia: string
+  resistenciaMagia: string
+  descricao: string
 }
 
 export interface FichaItem {
@@ -147,6 +191,36 @@ export interface FichaItem {
   quantidade: number
   peso: number
   notas: string
+}
+
+/**
+ * Familiar/companheiro animal — seção 1:1 opcional (ausente até o jogador
+ * preencher o primeiro campo). Ver `character-sheets`, requisito "Edição da
+ * seção de familiar/companheiro animal".
+ */
+export interface FichaFamiliar {
+  nome: string
+  tipo: string
+  dv: string
+  iniciativa: number
+  deslocamento: number
+  ca: number
+  ataques: string
+  ae: string
+  qe: string
+  tendencia: string
+  fortitude: number
+  reflexos: number
+  vontade: number
+  str: number
+  dex: number
+  con: number
+  int: number
+  wis: number
+  cha: number
+  cmb: number
+  cmd: number
+  face: string
 }
 
 export interface Ficha {
@@ -162,7 +236,8 @@ export interface Ficha {
   magiaNiveis: FichaMagiaNivel[]
   magias: FichaMagia[]
   itens: FichaItem[]
+  familiar?: FichaFamiliar
 }
 
-export type SecaoUmParaUm = 'geral' | 'combate' | 'magias-config' | 'moedas' | 'notas'
+export type SecaoUmParaUm = 'geral' | 'combate' | 'magias-config' | 'moedas' | 'notas' | 'familiar'
 export type SecaoLista = 'talentos' | 'ataques' | 'pericias' | 'magias' | 'itens'

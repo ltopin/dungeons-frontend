@@ -90,6 +90,12 @@ main {
   color: var(--parchment);
 }
 
+.campaigns-screen__masthead-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .campaigns-screen__logout {
   background: transparent;
   border: none;
@@ -262,6 +268,49 @@ main {
   color: var(--parchment);
 }
 
+.campaigns-screen__status-pill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.campaigns-screen__status-pill--rascunho {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+}
+
+.campaigns-screen__status-pill--publicado {
+  background: var(--gold);
+  color: #1a1410;
+}
+
+.campaigns-screen__lore-group + .campaigns-screen__lore-group {
+  margin-top: 20px;
+}
+
+.campaigns-screen__lore-item {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 12px 14px;
+}
+
+.campaigns-screen__lore-item + .campaigns-screen__lore-item {
+  margin-top: 8px;
+}
+
+.campaigns-screen__lore-content {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  margin-top: 6px;
+}
+
 .campaigns-screen__list--open li {
   display: flex;
   align-items: flex-start;
@@ -388,7 +437,8 @@ main {
 }
 
 .auth-screen__field input,
-.auth-screen__field textarea {
+.auth-screen__field textarea,
+.auth-screen__field select {
   font-family: inherit;
   font-size: 15px;
   background: var(--parchment);
@@ -403,7 +453,8 @@ main {
 }
 
 .auth-screen__field input:focus-visible,
-.auth-screen__field textarea:focus-visible {
+.auth-screen__field textarea:focus-visible,
+.auth-screen__field select:focus-visible {
   outline: 2px solid var(--gold-bright);
   outline-offset: 1px;
 }
@@ -526,6 +577,34 @@ main {
   margin-bottom: 12px;
 }
 
+.ficha-sheet .autosave-alert {
+  background: var(--panel-2);
+  border: 1px solid var(--blood);
+  border-top: 3px solid var(--blood-bright);
+  border-radius: 5px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ficha-sheet .autosave-alert-link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--blood-bright);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.ficha-sheet .autosave-alert-link:hover {
+  color: var(--gold-bright);
+}
+
 .ficha-sheet .ro-back-link {
   background: transparent;
   border: none;
@@ -642,15 +721,26 @@ main {
   grid-template-columns: repeat(7, 1fr);
 }
 
+.ficha-sheet .field-grid.five {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.ficha-sheet .field-grid.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 @media (max-width: 700px) {
   .ficha-sheet .field-grid,
-  .ficha-sheet .field-grid.six {
+  .ficha-sheet .field-grid.six,
+  .ficha-sheet .field-grid.five,
+  .ficha-sheet .field-grid.three {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 .ficha-sheet .field-grid label,
-.ficha-sheet form label {
+.ficha-sheet form label,
+.ficha-sheet label.field {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -658,6 +748,7 @@ main {
 }
 
 .ficha-sheet .field-grid label > span:first-child,
+.ficha-sheet label.field > span:first-child,
 .ficha-sheet .field-label {
   font-size: 10px;
   text-transform: uppercase;
@@ -731,12 +822,12 @@ main {
 }
 
 .ficha-sheet .seal-label-text {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--text-dim);
 }
 
 .ficha-sheet .seal-mod {
-  margin-top: -14px;
+  margin-top: -6px;
   background: var(--gold);
   color: #1a1410;
   font-family: 'JetBrains Mono', monospace;
@@ -862,9 +953,15 @@ main {
   border-radius: 5px;
   padding: 10px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ficha-sheet .list-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  align-items: flex-end;
 }
 
 .ficha-sheet .add-btn {
@@ -889,16 +986,41 @@ main {
   border: 1px solid var(--line);
   color: var(--text-dim);
   border-radius: 4px;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   cursor: pointer;
   font-size: 12px;
+  flex: none;
+}
+
+.ficha-sheet .icon-btn.danger {
+  color: var(--blood-bright);
+  border-color: var(--blood);
 }
 
 .ficha-sheet .icon-btn.danger:hover {
   background: var(--blood);
   color: var(--parchment);
   border-color: var(--blood);
+}
+
+@media (pointer: coarse) {
+  .ficha-sheet .icon-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+}
+
+.ficha-sheet .confirm-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ficha-sheet .confirm-inline-label {
+  font-size: 12px;
+  color: var(--blood-bright);
 }
 
 .ficha-sheet .star-toggle {
@@ -981,9 +1103,19 @@ main {
 }
 
 .ficha-sheet .spell-entry {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ficha-sheet .spell-entry-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -1058,4 +1190,330 @@ main {
 .ficha-sheet .ro-notes--vazio {
   color: var(--text-dim);
   font-style: italic;
+}
+
+/* ============================================================
+   TRILHA DE CRIAÇÃO DE PERSONAGEM — "Mesa do escriba": herda o
+   tema do Livro de Ligações (.ficha-sheet); só acrescenta o
+   layout de duas colunas (sumário fixo + etapa atual).
+   ============================================================ */
+
+.wizard-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .wizard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ficha-sheet .wizard-sidebar {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 10px;
+  position: sticky;
+  top: 12px;
+}
+
+.ficha-sheet .wizard-sidebar ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ficha-sheet .wizard-step-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 8px 10px;
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ficha-sheet .wizard-step-item:hover {
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.ficha-sheet .wizard-step-item[aria-current='true'] {
+  background: var(--panel-2);
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+
+.ficha-sheet .wizard-step-index {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  width: 16px;
+}
+
+.ficha-sheet .wizard-step-titulo {
+  flex: 1;
+}
+
+.ficha-sheet .wizard-step-status {
+  font-size: 13px;
+  color: var(--gold-bright);
+  width: 14px;
+  text-align: center;
+}
+
+.ficha-sheet .wizard-step-item[data-status='na'] .wizard-step-status,
+.ficha-sheet .wizard-step-item[data-status='na'] .wizard-step-titulo {
+  color: var(--text-dim);
+}
+
+.ficha-sheet .wizard-main {
+  min-height: 320px;
+}
+
+.ficha-sheet .wizard-step > .section-header:first-child {
+  margin-bottom: 10px;
+}
+
+.ficha-sheet .wizard-step-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.ficha-sheet .wizard-step-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ficha-sheet .wizard-points-remaining {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--gold-bright);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 6px 10px;
+  display: inline-block;
+  margin: 4px 0 12px;
+}
+
+.ficha-sheet .wizard-points-remaining--negativo {
+  color: var(--blood-bright);
+  border-color: var(--blood);
+}
+
+.ficha-sheet .wizard-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ficha-sheet .wizard-pool-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ficha-sheet .wizard-choice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 10px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ficha-sheet .wizard-choice-card--compact {
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.ficha-sheet .wizard-choice-card:hover {
+  border-color: var(--gold);
+}
+
+.ficha-sheet .wizard-choice-card[aria-pressed='true'] {
+  border-color: var(--gold);
+  background: linear-gradient(160deg, var(--panel-2), var(--bg));
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+.ficha-sheet .wizard-choice-nome {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold-bright);
+}
+
+.ficha-sheet .wizard-choice-detalhe {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.ficha-sheet .wizard-tracos {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.ficha-sheet .wizard-seal-com-controles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ficha-sheet .wizard-seal-final {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.ficha-sheet .wizard-seal-botoes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ficha-sheet .wizard-seal-botoes button {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--gold-bright);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ficha-sheet .wizard-seal-botoes button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ficha-sheet .wizard-seal-base {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.ficha-sheet .wizard-skill-list,
+.ficha-sheet .wizard-feat-list,
+.ficha-sheet .wizard-spell-list,
+.ficha-sheet .wizard-shop-list,
+.ficha-sheet .wizard-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ficha-sheet .wizard-skill-row,
+.ficha-sheet .wizard-feat-row,
+.ficha-sheet .wizard-spell-row,
+.ficha-sheet .wizard-shop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.ficha-sheet .wizard-feat-row[data-bloqueado] {
+  border-color: var(--blood);
+}
+
+.ficha-sheet .wizard-feat-bloqueio {
+  color: var(--blood-bright);
+  font-size: 11px;
+  margin: 2px 0 0;
+}
+
+.ficha-sheet .wizard-feat-nome,
+.ficha-sheet .wizard-skill-nome {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ficha-sheet .wizard-skill-controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ficha-sheet .wizard-skill-controles button {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--gold-bright);
+  cursor: pointer;
+}
+
+.ficha-sheet .wizard-skill-controles button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ficha-sheet .wizard-skill-graduacoes {
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 16px;
+  text-align: center;
+}
+
+.ficha-sheet .wizard-spell-group h3,
+.ficha-sheet .wizard-step h3 {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--blue-bright);
+  margin: 14px 0 6px;
+}
+
+.ficha-sheet .wizard-review-list li {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.ficha-sheet .add-btn.small {
+  padding: 4px 8px;
+  font-size: 11px;
+  margin-top: 0;
 }
