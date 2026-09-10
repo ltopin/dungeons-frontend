@@ -38,6 +38,7 @@ export function CharacterWizardPage() {
   const [racaId, setRacaId] = useState<string | undefined>(undefined)
   const [classeId, setClasseId] = useState<string | undefined>(undefined)
   const [geralAoVivo, setGeralAoVivo] = useState<FichaGeral | null>(null)
+  const [mundoId, setMundoId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (!id) return
@@ -45,8 +46,10 @@ export function CharacterWizardPage() {
     setErro(null)
     setFicha(null)
     setCompendio(null)
+    let mundoIdCampanha: string | undefined
     Promise.all([
       obterCampanha(id).then((campanha) => {
+        mundoIdCampanha = campanha.mundoId
         if (!campanha.fichaId) throw new Error('sem ficha')
         return obterFicha(campanha.fichaId)
       }),
@@ -59,6 +62,7 @@ export function CharacterWizardPage() {
         if (cancelado) return
         setFicha(dados)
         setGeralAoVivo(dados.geral)
+        setMundoId(mundoIdCampanha)
         setCompendio({ racas, classes, pericias, talentos })
         const racaEncontrada = racas.find((r) => r.nome.toLowerCase() === (dados.geral.raca ?? '').trim().toLowerCase())
         const classeEncontrada = classes.find(
@@ -108,6 +112,11 @@ export function CharacterWizardPage() {
     <main aria-label="Trilha de criação de personagem" className="ficha-sheet wizard-screen">
       <header className="masthead">
         <div className="eyebrow">Trilha de Criação de Personagem · D&amp;D 3.5</div>
+        {mundoId && (
+          <Link to={`/campanhas/${id}/historia`} className="ro-back-link">
+            História da campanha
+          </Link>
+        )}
         <Link to="/campanhas" className="ro-back-link">
           Voltar às campanhas
         </Link>

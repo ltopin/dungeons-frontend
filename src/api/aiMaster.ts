@@ -81,3 +81,34 @@ export async function obterResumoHandoff(campanhaId: string): Promise<{ resumo: 
   const resposta = await apiRequest<ResumoHandoffApi>(`/campanhas/${campanhaId}/handoff-resumo`)
   return { resumo: resposta.resumo }
 }
+
+/**
+ * Envia o resumo da própria rodada em modo exploração, ou a ação do turno
+ * corrente em modo combate — mesmo endpoint para os dois casos, o backend
+ * decide pelo `modo` atual da campanha (`ai-session-narration`). Rota REST,
+ * não evento de socket: `fix-rodada-ia-wire-contract` corrige o descompasso
+ * com o backend, que nunca implementou os eventos de socket originalmente
+ * assumidos pelo frontend.
+ */
+export async function enviarResumoRodada(campanhaId: string, resumo: string): Promise<void> {
+  await apiRequest<unknown>(`/campanhas/${campanhaId}/rodada/resumo`, {
+    method: 'POST',
+    body: { resumo },
+  })
+}
+
+/** Fecha a rodada corrente, disparando a narração da IA (`ai-session-narration`). */
+export async function fecharRodada(campanhaId: string): Promise<void> {
+  await apiRequest<unknown>(`/campanhas/${campanhaId}/rodada/fechar`, { method: 'POST' })
+}
+
+/**
+ * Dispara a narração de chegada do personagem do jogador atual nessa
+ * campanha — idempotente no backend (`narrarChegadaPersonagem`): se já
+ * existe uma para o personagem, ele só retransmite o evento existente em vez
+ * de gerar outro. O evento resultante chega pelo canal de eventos, não pela
+ * resposta desta chamada (`ai-session-narration`/`narracao-chegada`).
+ */
+export async function narrarChegadaPersonagem(campanhaId: string): Promise<void> {
+  await apiRequest<unknown>(`/campanhas/${campanhaId}/rodada/chegada`, { method: 'POST' })
+}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { getContaAtual } from '../auth/session'
 import type { ConexaoEventosStatus } from './useCampaignEvents'
 import type { EventoMesa } from './types'
@@ -42,6 +43,35 @@ function descreverEvento(evento: EventoMesa): { titulo: string; detalhe: string 
     }
   }
 
+  if (evento.tipo === 'narracao_chegada') {
+    return {
+      titulo: `Chegada de ${evento.payload.personagemNome}`,
+      detalhe: evento.payload.texto,
+    }
+  }
+
+  if (evento.tipo === 'resumo_rodada') {
+    const autor =
+      evento.autorContaId === getContaAtual()?.id
+        ? 'Você'
+        : evento.payload.autorNomePersonagem ?? 'Um jogador'
+    return {
+      titulo: `Resumo de ${autor}`,
+      detalhe: evento.payload.texto,
+    }
+  }
+
+  if (evento.tipo === 'acao_turno') {
+    const autor =
+      evento.autorContaId === getContaAtual()?.id
+        ? 'Você'
+        : evento.payload.autorNomePersonagem ?? 'Um jogador'
+    return {
+      titulo: `Ação de ${autor}`,
+      detalhe: evento.payload.texto,
+    }
+  }
+
   const rotuloModo = (modo: 'exploracao' | 'combate') => (modo === 'combate' ? 'combate' : 'exploração')
   return {
     titulo:
@@ -50,6 +80,58 @@ function descreverEvento(evento: EventoMesa): { titulo: string; detalhe: string 
         : `A IA encerrou o combate — voltando ao modo ${rotuloModo(evento.payload.modoNovo)}`,
     detalhe: `${rotuloModo(evento.payload.modoAnterior)} → ${rotuloModo(evento.payload.modoNovo)}`,
   }
+}
+
+function extrairRodada(evento: EventoMesa): number | null {
+  switch (evento.tipo) {
+    case 'narracao_ia':
+    case 'resumo_rodada':
+    case 'acao_turno':
+      return evento.payload.rodada
+    default:
+      return null
+  }
+}
+
+type ItemEventos = { tipo: 'divisor'; rodada: number } | { tipo: 'evento'; evento: EventoMesa }
+
+function agruparEventosPorRodada(eventos: EventoMesa[]): ItemEventos[] {
+  const itens: ItemEventos[] = []
+  let rodadaAtual: number | null = null
+  for (const evento of eventos) {
+    const rodadaEvento = extrairRodada(evento)
+    if (rodadaEvento !== null && rodadaEvento !== rodadaAtual) {
+      itens.push({ tipo: 'divisor', rodada: rodadaEvento })
+      rodadaAtual = rodadaEvento
+    }
+    itens.push({ tipo: 'evento', evento })
+  }
+  return itens
+}
+
+function EventoItem({ evento }: { evento: EventoMesa }) {
+  const { titulo, detalhe } = descreverEvento(evento)
+  const deChegada = evento.tipo === 'narracao_chegada'
+  const deIA = evento.origem === 'ia'
+  return (
+    <li
+      data-origem={evento.origem}
+      className={deChegada ? 'eventos-mesa__item--chegada' : deIA ? 'eventos-mesa__item--ia' : undefined}
+    >
+      {deChegada && (
+        <span className="eventos-mesa__origem-chegada" aria-label="Narração de chegada">
+          CHEGADA
+        </span>
+      )}
+      {deIA && !deChegada && (
+        <span className="eventos-mesa__origem-ia" aria-label="Evento gerado pela IA">
+          IA
+        </span>
+      )}
+      <strong>{titulo}</strong>
+      <span className="eventos-mesa__detalhe">{detalhe}</span>
+    </li>
+  )
 }
 
 const STATUS_CLASSE: Record<Exclude<ConexaoEventosStatus, 'conectado'>, string> = {
@@ -67,6 +149,15 @@ export function EventosMesaPanel({
   status: ConexaoEventosStatus
   onReconectar?: () => void
 }) {
+  // A lista tem altura limitada (ver styles.css) para não empurrar o resto
+  // da ficha para baixo à medida que a mesa acumula eventos — em vez disso,
+  // rola para o evento mais recente a cada novo evento, como um chat.
+  const listaRef = useRef<HTMLUListElement>(null)
+  useEffect(() => {
+    const lista = listaRef.current
+    if (lista) lista.scrollTop = lista.scrollHeight
+  }, [eventos.length])
+
   return (
     <section aria-label="Eventos de mesa" className="panel eventos-mesa">
       <div className="section-header">
@@ -91,22 +182,21 @@ export function EventosMesaPanel({
       )}
 
       {eventos.length > 0 && (
-        <ul className="eventos-mesa__list">
-          {eventos.map((evento) => {
-            const { titulo, detalhe } = descreverEvento(evento)
-            const deIA = evento.origem === 'ia'
-            return (
-              <li key={evento.id} data-origem={evento.origem} className={deIA ? 'eventos-mesa__item--ia' : undefined}>
-                {deIA && (
-                  <span className="eventos-mesa__origem-ia" aria-label="Evento gerado pela IA">
-                    IA
-                  </span>
-                )}
-                <strong>{titulo}</strong>
-                <span className="eventos-mesa__detalhe">{detalhe}</span>
+        <ul className="eventos-mesa__list" ref={listaRef}>
+          {agruparEventosPorRodada(eventos).map((item) =>
+            item.tipo === 'divisor' ? (
+              <li
+                key={`divisor-${item.rodada}`}
+                className="eventos-mesa__divisor"
+                role="separator"
+                aria-label={`Rodada ${item.rodada}`}
+              >
+                Rodada {item.rodada}
               </li>
-            )
-          })}
+            ) : (
+              <EventoItem key={item.evento.id} evento={item.evento} />
+            ),
+          )}
         </ul>
       )}
     </section>

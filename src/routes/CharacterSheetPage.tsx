@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { obterCampanha } from '../api/campaigns'
 import { obterFicha } from '../api/sheets'
-import type { Ficha, FichaGeral } from '../api/types'
+import { listarElementosPublicadosDaCampanha } from '../api/worlds'
+import type { ElementoHistoria, Ficha, FichaGeral } from '../api/types'
 import { fichaAindaNaoIniciada } from '../wizard/wizardSteps'
+import { CampaignLoreWelcome } from './CampaignLoreWelcome'
 import { GeralTab } from '../sheet/tabs/GeralTab'
 import { CombateTab } from '../sheet/tabs/CombateTab'
 import { TalentosTab } from '../sheet/tabs/TalentosTab'
@@ -76,12 +78,23 @@ export function CharacterSheetPage() {
   const [geralAoVivo, setGeralAoVivo] = useState<FichaGeral | null>(null)
   const [falhasDeSave, setFalhasDeSave] = useState<string[]>([])
   const [erroRolagem, setErroRolagem] = useState<string | null>(null)
-  const { eventos, status, emitirRolagem, reconectar, rodada, enviarResumoRodada, fecharRodada } =
+  const { eventos, status, emitirRolagem, reconectar, rodada, enviarResumoRodada, fecharRodada, narrarChegada } =
     useCampaignEvents(id)
+  // Narração de chegada individual por personagem (`narracao-chegada`):
+  // gerada uma única vez por personagem, disparada quando o histórico de
+  // eventos já carregou e ainda não há uma `narracao_chegada` para esta
+  // ficha. O ref evita disparo duplicado em re-renders da mesma montagem.
+  const [erroChegada, setErroChegada] = useState<string | null>(null)
+  const [chegadaGerando, setChegadaGerando] = useState(false)
+  const chegadaDisparadaParaFichaRef = useRef<string | null>(null)
   // Decidido uma única vez a partir do GET inicial — não recomputado a cada
   // sync de autosave, para não arrancar o usuário de volta para a trilha só
   // porque um campo de Geral ficou temporariamente vazio durante uma edição.
   const [redirecionarParaTrilha, setRedirecionarParaTrilha] = useState(false)
+  // Elementos de história publicados a exibir antes do assistente — só
+  // populado quando a ficha está em branco e a campanha tem mundo vinculado
+  // com pelo menos um elemento publicado (ver design.md, decisão 1).
+  const [loreBoasVindas, setLoreBoasVindas] = useState<ElementoHistoria[] | null>(null)
   const [mundoId, setMundoId] = useState<string | undefined>(undefined)
   // Campos de `ai-master-handoff`/`ai-session-narration`: ausentes (undefined/false)
   // para campanhas com mestre humano, sem mudança de comportamento.
@@ -109,6 +122,9 @@ export function CharacterSheetPage() {
     let cancelado = false
     setErro(null)
     setFicha(null)
+    setRedirecionarParaTrilha(false)
+    setLoreBoasVindas(null)
+    let mundoIdCampanha: string | undefined
     obterCampanha(id)
       .then((campanha) => {
         if (!cancelado) {
@@ -116,15 +132,33 @@ export function CharacterSheetPage() {
           setMestre(campanha.mestre)
           setSouCriador(campanha.souCriador ?? false)
         }
+        mundoIdCampanha = campanha.mundoId
         if (!campanha.fichaId) throw new Error('sem ficha')
         return obterFicha(campanha.fichaId)
       })
       .then((dados) => {
-        if (!cancelado) {
-          setFicha(dados)
-          setGeralAoVivo(dados.geral)
-          setRedirecionarParaTrilha(fichaAindaNaoIniciada(dados))
+        if (cancelado) return
+        setFicha(dados)
+        setGeralAoVivo(dados.geral)
+        if (!fichaAindaNaoIniciada(dados)) return
+        if (!mundoIdCampanha) {
+          setRedirecionarParaTrilha(true)
+          return
         }
+        // Falha nessa busca não deve bloquear a entrada no assistente — trata
+        // como "sem história disponível" e segue direto (design.md, decisão 3).
+        return listarElementosPublicadosDaCampanha(id)
+          .then((elementos) => {
+            if (cancelado) return
+            if (elementos.length > 0) {
+              setLoreBoasVindas(elementos)
+            } else {
+              setRedirecionarParaTrilha(true)
+            }
+          })
+          .catch(() => {
+            if (!cancelado) setRedirecionarParaTrilha(true)
+          })
       })
       .catch(() => {
         if (!cancelado) setErro('Não foi possível carregar sua ficha.')
@@ -134,6 +168,30 @@ export function CharacterSheetPage() {
     }
   }, [id])
 
+  const chegadaNarrada = ficha
+    ? eventos.some((e) => e.tipo === 'narracao_chegada' && e.payload.personagemId === ficha.id)
+    : false
+
+  function dispararNarracaoChegada(fichaId: string): void {
+    chegadaDisparadaParaFichaRef.current = fichaId
+    setErroChegada(null)
+    setChegadaGerando(true)
+    narrarChegada().then(
+      () => setChegadaGerando(false),
+      () => {
+        setChegadaGerando(false)
+        setErroChegada('Não foi possível narrar a chegada do seu personagem agora.')
+      },
+    )
+  }
+
+  useEffect(() => {
+    if (!ficha || mestre !== 'ia' || status !== 'conectado' || chegadaNarrada) return
+    if (chegadaDisparadaParaFichaRef.current === ficha.id) return
+    dispararNarracaoChegada(ficha.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- guardado pelo ref por fichaId; não deve redisparar por causa de identidade de narrarChegada
+  }, [ficha, mestre, status, chegadaNarrada])
+
   function rolarItem(tipoItem: TipoItemFicha, itemId: string): void {
     setErroRolagem(null)
     emitirRolagem({ tipoItem, itemId }).catch(() => setErroRolagem('Não foi possível enviar a rolagem.'))
@@ -141,6 +199,14 @@ export function CharacterSheetPage() {
 
   if (erro) return <p role="alert">{erro}</p>
   if (!ficha || !geralAoVivo) return <p>Carregando ficha…</p>
+  if (loreBoasVindas) {
+    return (
+      <CampaignLoreWelcome
+        elementos={loreBoasVindas}
+        onIniciar={() => navigate(`/campanhas/${id}/ficha/criar`)}
+      />
+    )
+  }
   if (redirecionarParaTrilha) return <Navigate to={`/campanhas/${id}/ficha/criar`} replace />
 
   if (resumoHandoff) {
@@ -283,7 +349,14 @@ export function CharacterSheetPage() {
       )}
       {aba === 'Notas' && <NotasTab fichaId={ficha.id} notas={ficha.notas} onSaved={atualizarSecao('notas')} />}
 
-      {rodada && (
+      {rodada && !chegadaNarrada && (
+        <ChegadaPersonagemPanel
+          gerando={chegadaGerando}
+          erro={erroChegada}
+          onTentarNovamente={() => ficha && dispararNarracaoChegada(ficha.id)}
+        />
+      )}
+      {rodada && chegadaNarrada && (
         <RodadaPanel
           rodada={rodada}
           onEnviarResumo={enviarResumoRodada}
@@ -306,5 +379,39 @@ export function CharacterSheetPage() {
         </p>
       )}
     </main>
+  )
+}
+
+/**
+ * Substitui `RodadaPanel`/`ResumoRodadaPanel` enquanto a narração de chegada
+ * do personagem atual ainda não chegou pelo canal de eventos — ver
+ * `narracao-chegada`/design.md, decisão "Estado de carregamento substitui o
+ * painel de resumo". Evita que o jogador escreva uma ação de rodada antes de
+ * saber a cena.
+ */
+function ChegadaPersonagemPanel({
+  gerando,
+  erro,
+  onTentarNovamente,
+}: {
+  gerando: boolean
+  erro: string | null
+  onTentarNovamente: () => void
+}) {
+  return (
+    <section aria-label="Chegada" className="panel rodada-panel">
+      {erro ? (
+        <>
+          <p role="alert" className="save-status save-status--erro">
+            {erro}
+          </p>
+          <button type="button" className="roll-btn" onClick={onTentarNovamente} disabled={gerando}>
+            {gerando ? 'Tentando novamente…' : 'Tentar novamente'}
+          </button>
+        </>
+      ) : (
+        <p role="status">A cena está sendo narrada…</p>
+      )}
+    </section>
   )
 }

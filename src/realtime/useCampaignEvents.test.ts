@@ -1,12 +1,18 @@
 import { act, renderHook } from '@testing-library/react'
 import { io } from 'socket.io-client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import * as aiMaster from '../api/aiMaster'
 import { useCampaignEvents } from './useCampaignEvents'
 
 vi.mock('socket.io-client', () => ({ io: vi.fn() }))
 vi.mock('../auth/session', () => ({
   getToken: () => 'token-fake',
   getContaAtual: () => ({ id: 'conta-1' }),
+}))
+vi.mock('../api/aiMaster', () => ({
+  enviarResumoRodada: vi.fn(),
+  fecharRodada: vi.fn(),
+  narrarChegadaPersonagem: vi.fn(),
 }))
 
 type Handler = (...args: unknown[]) => void
@@ -226,5 +232,169 @@ describe('useCampaignEvents', () => {
       { campanha_id: 'camp-1', destinatario_conta_id: undefined, descricao: 'Teste de Percepção' },
       expect.any(Function),
     )
+  })
+
+  it('rodada:estado recebido pelo socket atualiza o estado da rodada', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('rodada:estado', {
+        modo: 'exploracao',
+        rodada: 2,
+        participantes: [{ conta_id: 'conta-1', nome: 'Você', resumo_enviado: true }],
+        turno_atual_conta_id: null,
+      })
+    })
+
+    expect(result.current.rodada).toMatchObject({
+      modo: 'exploracao',
+      rodada: 2,
+      participantes: [{ contaId: 'conta-1', resumoEnviado: true, resumoTexto: null }],
+    })
+  })
+
+  it('rodada:estado com resumo_texto popula resumoTexto de cada participante', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('rodada:estado', {
+        modo: 'exploracao',
+        rodada: 2,
+        participantes: [
+          {
+            conta_id: 'conta-2',
+            nome: 'Thorin',
+            resumo_enviado: true,
+            resumo_texto: 'Investigo o corredor à esquerda.',
+          },
+        ],
+        turno_atual_conta_id: null,
+      })
+    })
+
+    expect(result.current.rodada).toMatchObject({
+      participantes: [{ contaId: 'conta-2', resumoTexto: 'Investigo o corredor à esquerda.' }],
+    })
+  })
+
+  it('evento:historico com tipo resumo_rodada aparece em eventos', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('evento:historico', [
+        {
+          id: 'ev-6',
+          campanha_id: 'camp-1',
+          autor_conta_id: 'conta-2',
+          tipo: 'resumo_rodada',
+          payload: { texto: 'Investigo o corredor à esquerda.', rodada: 2, autor_nome_personagem: 'Thorin' },
+          criado_em: '2026-01-01T00:05:00.000Z',
+        },
+      ])
+    })
+
+    expect(result.current.eventos).toHaveLength(1)
+    expect(result.current.eventos[0]).toMatchObject({
+      tipo: 'resumo_rodada',
+      payload: { texto: 'Investigo o corredor à esquerda.', rodada: 2, autorNomePersonagem: 'Thorin' },
+    })
+  })
+
+  it('evento:novo com tipo acao_turno aparece em eventos', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+    act(() => fake.trigger('evento:historico', []))
+
+    act(() => {
+      fake.trigger('evento:novo', {
+        id: 'ev-7',
+        campanha_id: 'camp-1',
+        autor_conta_id: 'conta-2',
+        tipo: 'acao_turno',
+        payload: { texto: 'Ataco o goblin com a espada.', rodada: 5, autor_nome_personagem: 'Thorin' },
+        criado_em: '2026-01-01T00:06:00.000Z',
+      })
+    })
+
+    expect(result.current.eventos).toHaveLength(1)
+    expect(result.current.eventos[0]).toMatchObject({
+      tipo: 'acao_turno',
+      payload: { texto: 'Ataco o goblin com a espada.', rodada: 5, autorNomePersonagem: 'Thorin' },
+    })
+  })
+
+  it('enviarResumoRodada chama a rota REST, não o socket', async () => {
+    vi.mocked(aiMaster.enviarResumoRodada).mockResolvedValue(undefined)
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    await result.current.enviarResumoRodada('Investigo o corredor.')
+
+    expect(aiMaster.enviarResumoRodada).toHaveBeenCalledWith('camp-1', 'Investigo o corredor.')
+    expect(fake.emit).not.toHaveBeenCalledWith('rodada:resumo', expect.anything(), expect.anything())
+  })
+
+  it('enviarResumoRodada rejeita quando a chamada REST falha', async () => {
+    vi.mocked(aiMaster.enviarResumoRodada).mockRejectedValue(new Error('Falha na requisição (500)'))
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    await expect(result.current.enviarResumoRodada('x')).rejects.toThrow('Falha na requisição (500)')
+  })
+
+  it('fecharRodada chama a rota REST, não o socket', async () => {
+    vi.mocked(aiMaster.fecharRodada).mockResolvedValue(undefined)
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    await result.current.fecharRodada()
+
+    expect(aiMaster.fecharRodada).toHaveBeenCalledWith('camp-1')
+    expect(fake.emit).not.toHaveBeenCalledWith('rodada:fechar', expect.anything(), expect.anything())
+  })
+
+  it('evento:historico com tipo narracao_chegada aparece em eventos, sem número de rodada', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('evento:historico', [
+        {
+          id: 'ev-8',
+          campanha_id: 'camp-1',
+          autor_conta_id: null,
+          origem: 'ia',
+          tipo: 'narracao_chegada',
+          payload: {
+            texto: 'Você desperta em uma taverna enfumaçada.',
+            personagem_id: 'ficha-1',
+            personagem_nome: 'Aria',
+          },
+          criado_em: '2026-01-01T00:07:00.000Z',
+        },
+      ])
+    })
+
+    expect(result.current.eventos).toHaveLength(1)
+    expect(result.current.eventos[0]).toMatchObject({
+      tipo: 'narracao_chegada',
+      payload: {
+        texto: 'Você desperta em uma taverna enfumaçada.',
+        personagemId: 'ficha-1',
+        personagemNome: 'Aria',
+      },
+    })
+  })
+
+  it('narrarChegada chama a rota REST, não o socket', async () => {
+    vi.mocked(aiMaster.narrarChegadaPersonagem).mockResolvedValue(undefined)
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    await result.current.narrarChegada()
+
+    expect(aiMaster.narrarChegadaPersonagem).toHaveBeenCalledWith('camp-1')
+    expect(fake.emit).not.toHaveBeenCalledWith('rodada:chegada', expect.anything(), expect.anything())
+  })
+
+  it('narrarChegada rejeita quando a chamada REST falha', async () => {
+    vi.mocked(aiMaster.narrarChegadaPersonagem).mockRejectedValue(new Error('Falha na requisição (500)'))
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    await expect(result.current.narrarChegada()).rejects.toThrow('Falha na requisição (500)')
   })
 })

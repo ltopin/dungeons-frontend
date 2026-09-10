@@ -73,6 +73,47 @@ const narracaoDaIA: EventoMesa = {
   payload: { texto: 'A porta range e uma fumaça verde escapa pela fresta.', rodada: 4 },
 }
 
+const resumoDeOutroJogador: EventoMesa = {
+  id: 'ev-5',
+  campanhaId: 'camp-1',
+  autorContaId: 'conta-2',
+  origem: 'jogador',
+  criadoEm: '2026-01-01T00:04:00.000Z',
+  tipo: 'resumo_rodada',
+  payload: { texto: 'Investigo o corredor à esquerda.', rodada: 4, autorNomePersonagem: 'Thorin' },
+}
+
+const acaoDeTurnoDeOutroJogador: EventoMesa = {
+  id: 'ev-6',
+  campanhaId: 'camp-1',
+  autorContaId: 'conta-2',
+  origem: 'jogador',
+  criadoEm: '2026-01-01T00:05:00.000Z',
+  tipo: 'acao_turno',
+  payload: { texto: 'Ataco o goblin com a espada.', rodada: 5, autorNomePersonagem: 'Thorin' },
+}
+
+const narracaoDaRodadaSeguinte: EventoMesa = {
+  ...narracaoDaIA,
+  id: 'ev-3b',
+  criadoEm: '2026-01-01T00:06:00.000Z',
+  payload: { texto: 'Os goblins avançam pelo corredor.', rodada: 5 },
+}
+
+const chegadaDeThorin: EventoMesa = {
+  id: 'ev-7',
+  campanhaId: 'camp-1',
+  autorContaId: null,
+  origem: 'ia',
+  criadoEm: '2026-01-01T00:07:00.000Z',
+  tipo: 'narracao_chegada',
+  payload: {
+    texto: 'Thorin desperta em uma taverna enfumaçada, sem lembrar como chegou ali.',
+    personagemId: 'ficha-2',
+    personagemNome: 'Thorin',
+  },
+}
+
 const mudancaParaCombate: EventoMesa = {
   id: 'ev-4',
   campanhaId: 'camp-1',
@@ -174,5 +215,61 @@ describe('EventosMesaPanel', () => {
     render(<EventosMesaPanel eventos={[rolagemDeOutroJogador, narracaoDaIA]} status="conectado" />)
     const marcadoresIA = screen.getAllByLabelText('Evento gerado pela IA')
     expect(marcadoresIA).toHaveLength(1)
+  })
+
+  it('exibe o resumo de rodada de outro jogador com texto e autor', () => {
+    render(<EventosMesaPanel eventos={[resumoDeOutroJogador]} status="conectado" />)
+    expect(screen.getByText('Resumo de Thorin')).toBeInTheDocument()
+    expect(screen.getByText('Investigo o corredor à esquerda.')).toBeInTheDocument()
+  })
+
+  it('exibe a ação de turno de outro jogador com texto e autor', () => {
+    render(<EventosMesaPanel eventos={[acaoDeTurnoDeOutroJogador]} status="conectado" />)
+    expect(screen.getByText('Ação de Thorin')).toBeInTheDocument()
+    expect(screen.getByText('Ataco o goblin com a espada.')).toBeInTheDocument()
+  })
+
+  it('insere um divisor de rodada na transição entre rodadas', () => {
+    render(<EventosMesaPanel eventos={[narracaoDaIA, resumoDeOutroJogador, narracaoDaRodadaSeguinte]} status="conectado" />)
+
+    expect(screen.getByText('Rodada 4')).toBeInTheDocument()
+    expect(screen.getByText('Rodada 5')).toBeInTheDocument()
+    expect(screen.getAllByRole('separator')).toHaveLength(2)
+  })
+
+  it('não insere um novo divisor para eventos sem número de rodada no payload', () => {
+    render(
+      <EventosMesaPanel
+        eventos={[narracaoDaIA, rolagemDeOutroJogador, pedidoDoMestre]}
+        status="conectado"
+      />,
+    )
+
+    expect(screen.getAllByRole('separator')).toHaveLength(1)
+    expect(screen.getByText('Rodada 4')).toBeInTheDocument()
+  })
+
+  it('exibe a narração de chegada com o texto e o nome do personagem', () => {
+    render(<EventosMesaPanel eventos={[chegadaDeThorin]} status="conectado" />)
+    expect(screen.getByText('Chegada de Thorin')).toBeInTheDocument()
+    expect(
+      screen.getByText('Thorin desperta em uma taverna enfumaçada, sem lembrar como chegou ali.'),
+    ).toBeInTheDocument()
+  })
+
+  it('marca a narração de chegada com um selo distinto do selo de narração de rodada da IA', () => {
+    render(<EventosMesaPanel eventos={[narracaoDaIA, chegadaDeThorin]} status="conectado" />)
+    expect(screen.getByLabelText('Narração de chegada')).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Evento gerado pela IA')).toHaveLength(1)
+  })
+
+  it('não insere divisor de rodada para a narração de chegada, mesmo entre eventos de rodadas diferentes', () => {
+    render(
+      <EventosMesaPanel eventos={[narracaoDaIA, chegadaDeThorin, narracaoDaRodadaSeguinte]} status="conectado" />,
+    )
+
+    expect(screen.getAllByRole('separator')).toHaveLength(2)
+    expect(screen.getByText('Rodada 4')).toBeInTheDocument()
+    expect(screen.getByText('Rodada 5')).toBeInTheDocument()
   })
 })

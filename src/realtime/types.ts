@@ -32,6 +32,25 @@ export interface NarracaoIaPayload {
   rodada: number
 }
 
+/** Narração de chegada individual de um personagem — ver `narracao-chegada`. Sem `rodada`: é anterior à mecânica de rodadas, não dispara o divisor de agrupamento do painel de eventos. */
+export interface NarracaoChegadaPayload {
+  texto: string
+  personagemId: string
+  personagemNome: string
+}
+
+export interface ResumoRodadaPayload {
+  texto: string
+  rodada: number
+  autorNomePersonagem: string | null
+}
+
+export interface AcaoTurnoPayload {
+  texto: string
+  rodada: number
+  autorNomePersonagem: string | null
+}
+
 export interface OrdemIniciativaItem {
   contaId: string | null
   nome: string
@@ -57,14 +76,24 @@ export type EventoMesa =
   | (EventoMesaBase & { tipo: 'rolagem_dados'; payload: RolagemDadosPayload })
   | (EventoMesaBase & { tipo: 'pedido_rolagem'; payload: PedidoRolagemPayload })
   | (EventoMesaBase & { tipo: 'narracao_ia'; payload: NarracaoIaPayload })
+  | (EventoMesaBase & { tipo: 'narracao_chegada'; payload: NarracaoChegadaPayload })
   | (EventoMesaBase & { tipo: 'mudanca_modo'; payload: MudancaModoPayload })
+  | (EventoMesaBase & { tipo: 'resumo_rodada'; payload: ResumoRodadaPayload })
+  | (EventoMesaBase & { tipo: 'acao_turno'; payload: AcaoTurnoPayload })
 
 interface EventoMesaWire {
   id: string
   campanha_id: string
   autor_conta_id: string | null
   origem?: OrigemEvento
-  tipo: 'rolagem_dados' | 'pedido_rolagem' | 'narracao_ia' | 'mudanca_modo'
+  tipo:
+    | 'rolagem_dados'
+    | 'pedido_rolagem'
+    | 'narracao_ia'
+    | 'narracao_chegada'
+    | 'mudanca_modo'
+    | 'resumo_rodada'
+    | 'acao_turno'
   payload: Record<string, unknown>
   criado_em: string
 }
@@ -94,6 +123,30 @@ function mapNarracaoIaPayload(payload: Record<string, unknown>): NarracaoIaPaylo
   return {
     texto: String(payload.texto ?? ''),
     rodada: Number(payload.rodada ?? 0),
+  }
+}
+
+function mapNarracaoChegadaPayload(payload: Record<string, unknown>): NarracaoChegadaPayload {
+  return {
+    texto: String(payload.texto ?? ''),
+    personagemId: String(payload.personagem_id ?? ''),
+    personagemNome: String(payload.personagem_nome ?? ''),
+  }
+}
+
+function mapResumoRodadaPayload(payload: Record<string, unknown>): ResumoRodadaPayload {
+  return {
+    texto: String(payload.texto ?? ''),
+    rodada: Number(payload.rodada ?? 0),
+    autorNomePersonagem: (payload.autor_nome_personagem as string | null) ?? null,
+  }
+}
+
+function mapAcaoTurnoPayload(payload: Record<string, unknown>): AcaoTurnoPayload {
+  return {
+    texto: String(payload.texto ?? ''),
+    rodada: Number(payload.rodada ?? 0),
+    autorNomePersonagem: (payload.autor_nome_personagem as string | null) ?? null,
   }
 }
 
@@ -131,8 +184,14 @@ export function mapEventoFromWire(raw: EventoMesaWire): EventoMesa {
       return { ...base, tipo: 'pedido_rolagem', payload: mapPedidoRolagemPayload(raw.payload) }
     case 'narracao_ia':
       return { ...base, tipo: 'narracao_ia', payload: mapNarracaoIaPayload(raw.payload) }
+    case 'narracao_chegada':
+      return { ...base, tipo: 'narracao_chegada', payload: mapNarracaoChegadaPayload(raw.payload) }
     case 'mudanca_modo':
       return { ...base, tipo: 'mudanca_modo', payload: mapMudancaModoPayload(raw.payload) }
+    case 'resumo_rodada':
+      return { ...base, tipo: 'resumo_rodada', payload: mapResumoRodadaPayload(raw.payload) }
+    case 'acao_turno':
+      return { ...base, tipo: 'acao_turno', payload: mapAcaoTurnoPayload(raw.payload) }
     default:
       return { ...base, tipo: 'rolagem_dados', payload: mapRolagemDadosPayload(raw.payload) }
   }

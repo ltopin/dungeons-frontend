@@ -4,6 +4,7 @@ export interface ParticipanteRodada {
   contaId: string
   nome: string
   resumoEnviado: boolean
+  resumoTexto: string | null
 }
 
 /**
@@ -23,7 +24,12 @@ export interface EstadoRodada {
 interface EstadoRodadaWire {
   modo: 'exploracao' | 'combate'
   rodada: number
-  participantes: { conta_id: string; nome: string; resumo_enviado: boolean }[]
+  participantes: {
+    conta_id: string
+    nome: string
+    resumo_enviado: boolean
+    resumo_texto?: string | null
+  }[]
   ordem_iniciativa?: { conta_id: string | null; nome: string; iniciativa: number }[] | null
   turno_atual_conta_id: string | null
 }
@@ -36,6 +42,7 @@ export function mapEstadoRodadaFromWire(raw: EstadoRodadaWire): EstadoRodada {
       contaId: p.conta_id,
       nome: p.nome,
       resumoEnviado: p.resumo_enviado,
+      resumoTexto: p.resumo_texto ?? null,
     })),
     ordemIniciativa: Array.isArray(raw.ordem_iniciativa)
       ? raw.ordem_iniciativa.map((item) => ({

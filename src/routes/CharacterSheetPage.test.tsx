@@ -7,6 +7,7 @@ import { sairDaConta } from '../auth/session'
 import * as campaignsApi from '../api/campaigns'
 import * as sheetsApi from '../api/sheets'
 import * as compendioApi from '../api/compendio'
+import * as worldsApi from '../api/worlds'
 import * as realtimeApi from '../realtime/useCampaignEvents'
 import { criarFichaFake } from '../test/fixtures'
 import { autenticarComoContaFake } from '../test/session'
@@ -15,11 +16,13 @@ vi.mock('../api/accounts')
 vi.mock('../api/campaigns')
 vi.mock('../api/sheets')
 vi.mock('../api/compendio')
+vi.mock('../api/worlds')
 vi.mock('../realtime/useCampaignEvents')
 
 const campanhasMock = vi.mocked(campaignsApi)
 const fichasMock = vi.mocked(sheetsApi)
 const compendioMock = vi.mocked(compendioApi)
+const worldsMock = vi.mocked(worldsApi)
 const realtimeMock = vi.mocked(realtimeApi)
 
 beforeEach(async () => {
@@ -40,6 +43,7 @@ beforeEach(async () => {
   compendioMock.listarClassesCompendio.mockResolvedValue([])
   compendioMock.listarPericiasCompendio.mockResolvedValue([])
   compendioMock.listarTalentosCompendio.mockResolvedValue([])
+  worldsMock.listarElementosPublicadosDaCampanha.mockResolvedValue([])
   // Sem isso, o flush de edições pendentes ao desmontar uma aba (troca de
   // aba ou fim do teste) encadeia `.then` sobre um mock sem resolução e
   // quebra o teste — ver useSectionAutosave.ts / useListSection.ts.
@@ -54,6 +58,7 @@ beforeEach(async () => {
     rodada: null,
     enviarResumoRodada: vi.fn(),
     fecharRodada: vi.fn(),
+    narrarChegada: vi.fn().mockResolvedValue(undefined),
   })
 })
 
@@ -409,6 +414,122 @@ describe('redirecionamento para a trilha de criação', () => {
   })
 })
 
+function fichaEmBranco() {
+  return criarFichaFake({
+    geral: {
+      nomePersonagem: '',
+      classe: '',
+      nivel: 0,
+      raca: '',
+      alinhamento: '',
+      divindade: '',
+      tamanho: '',
+      genero: '',
+      idade: '',
+      altura: '',
+      peso: '',
+      idiomas: '',
+      str: 10,
+      dex: 10,
+      con: 10,
+      int: 10,
+      wis: 10,
+      cha: 10,
+    },
+    pericias: [],
+    talentos: [],
+    magias: [],
+    itens: [],
+  })
+}
+
+describe('tela de boas-vindas com a história do mundo antes da trilha', () => {
+  it('exibe a tela de boas-vindas em vez de redirecionar direto quando há mundoId e elementos publicados', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mundoId: 'mundo-1',
+    })
+    fichasMock.obterFicha.mockResolvedValue(fichaEmBranco())
+    worldsMock.listarElementosPublicadosDaCampanha.mockResolvedValue([
+      {
+        id: 'elem-1',
+        mundoId: 'mundo-1',
+        titulo: 'Bane',
+        categoria: 'Divindade',
+        conteudo: 'O deus da tirania.',
+        status: 'publicado',
+      },
+    ])
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('heading', { name: 'Bem-vindo à campanha' })).toBeInTheDocument()
+    expect(screen.getByText('Bane')).toBeInTheDocument()
+    expect(screen.queryByText(/Trilha de Criação de Personagem/i)).not.toBeInTheDocument()
+  })
+
+  it('redireciona direto para o assistente quando a campanha não tem mundo vinculado', async () => {
+    fichasMock.obterFicha.mockResolvedValue(fichaEmBranco())
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText(/Trilha de Criação de Personagem/i)).toBeInTheDocument()
+    expect(worldsMock.listarElementosPublicadosDaCampanha).not.toHaveBeenCalled()
+  })
+
+  it('redireciona direto para o assistente quando há mundoId mas nenhum elemento publicado', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mundoId: 'mundo-1',
+    })
+    fichasMock.obterFicha.mockResolvedValue(fichaEmBranco())
+    worldsMock.listarElementosPublicadosDaCampanha.mockResolvedValue([])
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText(/Trilha de Criação de Personagem/i)).toBeInTheDocument()
+  })
+
+  it('redireciona direto para o assistente quando a busca da história falha', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mundoId: 'mundo-1',
+    })
+    fichasMock.obterFicha.mockResolvedValue(fichaEmBranco())
+    worldsMock.listarElementosPublicadosDaCampanha.mockRejectedValue(new Error('falhou'))
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText(/Trilha de Criação de Personagem/i)).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+})
+
 describe('aba Familiar', () => {
   it('não gera erro quando a ficha não tem familiar, e permite o primeiro e os salvamentos seguintes', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
@@ -463,6 +584,7 @@ describe('eventos de mesa', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     const user = userEvent.setup()
@@ -508,6 +630,7 @@ describe('eventos de mesa', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     render(
@@ -532,6 +655,7 @@ describe('eventos de mesa', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     render(
@@ -553,5 +677,141 @@ describe('eventos de mesa', () => {
     await screen.findByDisplayValue('Aria Ventoclaro')
 
     expect(screen.queryByRole('button', { name: 'Pedir rolagem' })).not.toBeInTheDocument()
+  })
+})
+
+const rodadaFake = {
+  modo: 'exploracao' as const,
+  rodada: 1,
+  participantes: [],
+  ordemIniciativa: null,
+  turnoAtualContaId: null,
+}
+
+describe('narração de chegada (narracao-chegada)', () => {
+  it('dispara a narração de chegada e mostra carregamento quando o personagem ainda não tem uma, em campanha mestrada por IA', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mestre: 'ia',
+    })
+    const narrarChegada = vi.fn().mockReturnValue(new Promise<void>(() => {}))
+    realtimeMock.useCampaignEvents.mockReturnValue({
+      eventos: [],
+      status: 'conectado',
+      emitirRolagem: vi.fn(),
+      pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
+      rodada: rodadaFake,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
+      narrarChegada,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+    await screen.findByDisplayValue('Aria Ventoclaro')
+
+    expect(narrarChegada).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('A cena está sendo narrada…')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Seu resumo da rodada/)).not.toBeInTheDocument()
+  })
+
+  it('não dispara nova chamada quando o personagem já tem narração de chegada nos eventos carregados, e mostra a rodada direto', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mestre: 'ia',
+    })
+    const narrarChegada = vi.fn().mockResolvedValue(undefined)
+    realtimeMock.useCampaignEvents.mockReturnValue({
+      eventos: [
+        {
+          id: 'ev-chegada-1',
+          campanhaId: 'camp-1',
+          autorContaId: null,
+          origem: 'ia',
+          criadoEm: '2026-01-01T00:00:00.000Z',
+          tipo: 'narracao_chegada',
+          payload: {
+            texto: 'Aria desperta em uma taverna enfumaçada.',
+            personagemId: 'ficha-1',
+            personagemNome: 'Aria Ventoclaro',
+          },
+        },
+      ],
+      status: 'conectado',
+      emitirRolagem: vi.fn(),
+      pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
+      rodada: rodadaFake,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
+      narrarChegada,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+    await screen.findByDisplayValue('Aria Ventoclaro')
+
+    expect(narrarChegada).not.toHaveBeenCalled()
+    expect(screen.queryByText('A cena está sendo narrada…')).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/Seu resumo da rodada/)).toBeInTheDocument()
+  })
+
+  it('trata a narração de chegada de outro personagem como independente — ainda dispara a própria', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mestre: 'ia',
+    })
+    const narrarChegada = vi.fn().mockReturnValue(new Promise<void>(() => {}))
+    realtimeMock.useCampaignEvents.mockReturnValue({
+      eventos: [
+        {
+          id: 'ev-chegada-thorin',
+          campanhaId: 'camp-1',
+          autorContaId: null,
+          origem: 'ia',
+          criadoEm: '2026-01-01T00:00:00.000Z',
+          tipo: 'narracao_chegada',
+          payload: {
+            texto: 'Thorin desperta em uma taverna enfumaçada.',
+            personagemId: 'ficha-2',
+            personagemNome: 'Thorin',
+          },
+        },
+      ],
+      status: 'conectado',
+      emitirRolagem: vi.fn(),
+      pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
+      rodada: rodadaFake,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
+      narrarChegada,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+    await screen.findByDisplayValue('Aria Ventoclaro')
+
+    expect(narrarChegada).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('A cena está sendo narrada…')).toBeInTheDocument()
   })
 })

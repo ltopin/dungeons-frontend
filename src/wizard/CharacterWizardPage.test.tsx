@@ -159,6 +159,40 @@ beforeEach(async () => {
   fichasMock.atualizarMagiaNiveis.mockImplementation(async (_fichaId, niveis) => niveis as never)
 })
 
+describe('link para história da campanha', () => {
+  it('não aparece quando a campanha não tem mundo vinculado', async () => {
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha/criar']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('heading', { name: 'Raça e Classe' })
+    expect(screen.queryByRole('link', { name: 'História da campanha' })).not.toBeInTheDocument()
+  })
+
+  it('aparece e aponta para /campanhas/:id/historia quando a campanha tem mundo vinculado', async () => {
+    campanhasMock.obterCampanha.mockResolvedValue({
+      id: 'camp-1',
+      nome: 'Campanha',
+      role: 'jogador',
+      fichaId: 'ficha-1',
+      mundoId: 'mundo-1',
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha/criar']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('link', { name: 'História da campanha' })).toHaveAttribute(
+      'href',
+      '/campanhas/camp-1/historia',
+    )
+  })
+})
+
 describe('trilha de criação de personagem', () => {
   it('escolhe raça e classe e avança para a etapa de Atributos', async () => {
     const user = userEvent.setup()

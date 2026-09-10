@@ -33,6 +33,7 @@ beforeEach(async () => {
     rodada: null,
     enviarResumoRodada: vi.fn(),
     fecharRodada: vi.fn(),
+    narrarChegada: vi.fn().mockResolvedValue(undefined),
   })
 })
 
@@ -102,6 +103,7 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     const user = userEvent.setup()
@@ -137,6 +139,7 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     const user = userEvent.setup()
@@ -165,6 +168,7 @@ describe('eventos de mesa — controle de pedido de rolagem (mestre)', () => {
       rodada: null,
       enviarResumoRodada: vi.fn(),
       fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
     })
 
     render(

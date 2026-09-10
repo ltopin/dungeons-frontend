@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { io, type Socket } from 'socket.io-client'
 import { getToken } from '../auth/session'
+import {
+  enviarResumoRodada as enviarResumoRodadaApi,
+  fecharRodada as fecharRodadaApi,
+  narrarChegadaPersonagem as narrarChegadaPersonagemApi,
+} from '../api/aiMaster'
 import { mapEventoFromWire, type EventoMesa, type TipoItemFicha } from './types'
 import { mapEstadoRodadaFromWire, type EstadoRodada } from './rodada'
 
@@ -42,6 +47,7 @@ export interface UseCampaignEventsResult {
   rodada: EstadoRodada | null
   enviarResumoRodada: (texto: string) => Promise<void>
   fecharRodada: () => Promise<void>
+  narrarChegada: () => Promise<void>
 }
 
 function ackParaEvento(resposta: AckResponse, rejeitarMsg: string): Promise<EventoMesa> {
@@ -157,33 +163,36 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
     socket.connect()
   }
 
+  // Ação (enviar resumo/fechar) vai por REST, não pelo socket: o `dungeons-api`
+  // sempre expôs isso como rotas HTTP (`POST .../rodada/resumo|fechar`), nunca
+  // como eventos de socket — ver `fix-rodada-ia-wire-contract`/design.md,
+  // decisão 1. `apiRequest` já rejeita a Promise em qualquer falha (rede ou
+  // resposta de erro), então os estados de erro do `RodadaPanel` continuam
+  // funcionando sem mudança.
   function enviarResumoRodada(texto: string): Promise<void> {
-    const socket = socketRef.current
-    if (!socket || !campanhaId) {
-      return Promise.reject(new Error('Conexão de tempo real indisponível'))
-    }
-
-    return new Promise((resolve, reject) => {
-      socket.emit('rodada:resumo', { campanha_id: campanhaId, texto }, (resposta: AckResponse) => {
-        if (resposta?.ok) resolve()
-        else reject(new Error(resposta?.error || 'Não foi possível enviar o resumo da rodada'))
-      })
-    })
+    if (!campanhaId) return Promise.reject(new Error('Campanha inválida'))
+    return enviarResumoRodadaApi(campanhaId, texto)
   }
 
   function fecharRodada(): Promise<void> {
-    const socket = socketRef.current
-    if (!socket || !campanhaId) {
-      return Promise.reject(new Error('Conexão de tempo real indisponível'))
-    }
-
-    return new Promise((resolve, reject) => {
-      socket.emit('rodada:fechar', { campanha_id: campanhaId }, (resposta: AckResponse) => {
-        if (resposta?.ok) resolve()
-        else reject(new Error(resposta?.error || 'Não foi possível fechar a rodada'))
-      })
-    })
+    if (!campanhaId) return Promise.reject(new Error('Campanha inválida'))
+    return fecharRodadaApi(campanhaId)
   }
 
-  return { eventos, status, emitirRolagem, pedirRolagem, reconectar, rodada, enviarResumoRodada, fecharRodada }
+  function narrarChegada(): Promise<void> {
+    if (!campanhaId) return Promise.reject(new Error('Campanha inválida'))
+    return narrarChegadaPersonagemApi(campanhaId)
+  }
+
+  return {
+    eventos,
+    status,
+    emitirRolagem,
+    pedirRolagem,
+    reconectar,
+    rodada,
+    enviarResumoRodada,
+    fecharRodada,
+    narrarChegada,
+  }
 }
