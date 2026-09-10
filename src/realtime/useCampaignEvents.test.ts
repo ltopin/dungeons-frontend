@@ -162,6 +162,72 @@ describe('useCampaignEvents', () => {
     )
   })
 
+  it('emitirRolagem envia pedido_evento_id quando chamado com pedidoEventoId', async () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+    fake.emit.mockImplementation((event: string, _payload: unknown, ack?: Handler) => {
+      if (event === 'rolagem:emitir') {
+        ack?.({
+          ok: true,
+          data: {
+            id: 'ev-3',
+            campanha_id: 'camp-1',
+            autor_conta_id: 'conta-1',
+            tipo: 'rolagem_dados',
+            payload: {
+              tipo_item: 'pericia',
+              item_id: 'p1',
+              notacao: '1d20',
+              dados: [20],
+              bonus: 3,
+              resultado: 23,
+              pedido_evento_id: 'ev-2',
+            },
+            criado_em: '2026-01-01T00:02:00.000Z',
+          },
+        })
+      }
+    })
+
+    await result.current.emitirRolagem({ tipoItem: 'pericia', itemId: 'p1' }, 'ev-2')
+
+    expect(fake.emit).toHaveBeenCalledWith(
+      'rolagem:emitir',
+      { campanha_id: 'camp-1', tipo_item: 'pericia', item_id: 'p1', pedido_evento_id: 'ev-2' },
+      expect.any(Function),
+    )
+  })
+
+  it('emitirRolagem chamado sem pedidoEventoId mantém o payload atual, sem o campo', async () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+    fake.emit.mockImplementation((event: string, _payload: unknown, ack?: Handler) => {
+      if (event === 'rolagem:emitir') {
+        ack?.({
+          ok: true,
+          data: {
+            id: 'ev-3',
+            campanha_id: 'camp-1',
+            autor_conta_id: 'conta-1',
+            tipo: 'rolagem_dados',
+            payload: {
+              tipo_item: 'pericia',
+              item_id: 'p1',
+              notacao: '1d20',
+              dados: [20],
+              bonus: 3,
+              resultado: 23,
+            },
+            criado_em: '2026-01-01T00:02:00.000Z',
+          },
+        })
+      }
+    })
+
+    await result.current.emitirRolagem({ tipoItem: 'pericia', itemId: 'p1' })
+
+    const [, payloadEnviado] = fake.emit.mock.calls.find(([event]) => event === 'rolagem:emitir')!
+    expect(payloadEnviado).not.toHaveProperty('pedido_evento_id')
+  })
+
   it('emitirRolagem rejeita com o erro devolvido pelo servidor quando a rolagem é recusada', async () => {
     const { result } = renderHook(() => useCampaignEvents('camp-1'))
     fake.emit.mockImplementation((event: string, _payload: unknown, ack?: Handler) => {
@@ -377,6 +443,63 @@ describe('useCampaignEvents', () => {
         texto: 'Você desperta em uma taverna enfumaçada.',
         personagemId: 'ficha-1',
         personagemNome: 'Aria',
+      },
+    })
+  })
+
+  it('evento:historico com tipo narracao (nome real no wire, ver EventoMesa.ts do dungeons-api) aparece em eventos como narração, não como rolagem_dados vazia', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('evento:historico', [
+        {
+          id: 'ev-9',
+          campanha_id: 'camp-1',
+          autor_conta_id: null,
+          origem: 'ia',
+          tipo: 'narracao',
+          payload: { texto: 'Os goblins avançam pelo corredor.', rodada: 3 },
+          criado_em: '2026-01-01T00:08:00.000Z',
+        },
+      ])
+    })
+
+    expect(result.current.eventos).toHaveLength(1)
+    expect(result.current.eventos[0]).toMatchObject({
+      tipo: 'narracao_ia',
+      payload: { texto: 'Os goblins avançam pelo corredor.', rodada: 3 },
+    })
+  })
+
+  it('evento:historico com tipo narracao e pedido_evento_id/respondente mapeia os campos de correlação da reação pontual', () => {
+    const { result } = renderHook(() => useCampaignEvents('camp-1'))
+
+    act(() => {
+      fake.trigger('evento:historico', [
+        {
+          id: 'ev-10',
+          campanha_id: 'camp-1',
+          autor_conta_id: null,
+          origem: 'ia',
+          tipo: 'narracao',
+          payload: {
+            texto: 'Thorin desvia por pouco da lâmina giratória.',
+            rodada: 3,
+            pedido_evento_id: 'ev-pedido-1',
+            respondente_conta_id: 'conta-2',
+            respondente_nome_personagem: 'Thorin',
+          },
+          criado_em: '2026-01-01T00:09:00.000Z',
+        },
+      ])
+    })
+
+    expect(result.current.eventos[0]).toMatchObject({
+      tipo: 'narracao_ia',
+      payload: {
+        pedidoEventoId: 'ev-pedido-1',
+        respondenteContaId: 'conta-2',
+        respondenteNomePersonagem: 'Thorin',
       },
     })
   })

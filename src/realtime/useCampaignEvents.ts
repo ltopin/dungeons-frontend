@@ -40,7 +40,7 @@ export interface PedirRolagemInput {
 export interface UseCampaignEventsResult {
   eventos: EventoMesa[]
   status: ConexaoEventosStatus
-  emitirRolagem: (input: EmitirRolagemInput) => Promise<EventoMesa>
+  emitirRolagem: (input: EmitirRolagemInput, pedidoEventoId?: string) => Promise<EventoMesa>
   pedirRolagem: (input: PedirRolagemInput) => Promise<EventoMesa>
   reconectar: () => void
   /** Estado da rodada corrente (`ai-session-narration`) — `null` fora do fluxo de mestre-IA. */
@@ -113,7 +113,7 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
     }
   }, [campanhaId])
 
-  function emitirRolagem(input: EmitirRolagemInput): Promise<EventoMesa> {
+  function emitirRolagem(input: EmitirRolagemInput, pedidoEventoId?: string): Promise<EventoMesa> {
     const socket = socketRef.current
     if (!socket || !campanhaId) {
       return Promise.reject(new Error('Conexão de tempo real indisponível'))
@@ -126,6 +126,7 @@ export function useCampaignEvents(campanhaId: string | undefined): UseCampaignEv
     } else {
       payload.notacao = input.notacao
     }
+    if (pedidoEventoId) payload.pedido_evento_id = pedidoEventoId
 
     return new Promise((resolve, reject) => {
       socket.emit('rolagem:emitir', payload, (resposta: AckResponse) => {

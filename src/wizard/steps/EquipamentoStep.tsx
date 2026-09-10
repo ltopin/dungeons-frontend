@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FichaItem, FichaMoedas } from '../../api/types'
+import type { FichaAtaque, FichaItem, FichaMoedas } from '../../api/types'
 import type { CompendioClasse } from '../../api/compendioTypes'
 import { useSectionAutosave } from '../../sheet/useSectionAutosave'
 import { useListSection } from '../../sheet/useListSection'
@@ -9,22 +9,27 @@ export function EquipamentoStep({
   fichaId,
   moedas,
   itens,
+  ataques,
   classe,
   onMoedasSaved,
   onItensChange,
+  onAtaquesChange,
   onConcluir,
 }: {
   fichaId: string
   moedas: FichaMoedas
   itens: FichaItem[]
+  ataques: FichaAtaque[]
   classe: CompendioClasse | undefined
   onMoedasSaved?: (moedas: FichaMoedas) => void
   onItensChange?: (itens: FichaItem[]) => void
+  onAtaquesChange?: (ataques: FichaAtaque[]) => void
   onConcluir: () => void
 }) {
   const ouroInicialMedio = classe ? (OURO_INICIAL_POR_CLASSE[classe.nome] ?? 100) : 0
   const moedasAutosave = useSectionAutosave<FichaMoedas>(fichaId, 'moedas', moedas, undefined, onMoedasSaved)
   const lista = useListSection<FichaItem>(fichaId, 'itens', itens, undefined, onItensChange)
+  const ataquesLista = useListSection<FichaAtaque>(fichaId, 'ataques', ataques, undefined, onAtaquesChange)
   const [pacoteAplicado, setPacoteAplicado] = useState(false)
 
   useEffect(() => {
@@ -34,6 +39,31 @@ export function EquipamentoStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classe])
 
+  /**
+   * Adiciona o item ao inventário e, quando é uma arma com dados de combate
+   * cadastrados, também cria o Ataque correspondente — ver
+   * `compra-arma-cria-ataque`/design.md, decisão 2. `bonus` fica em branco,
+   * como qualquer Ataque adicionado manualmente (depende de BAB/atributos,
+   * fora de escopo aqui).
+   */
+  function adquirirItem(itemId: string): void {
+    const item = itemEquipamentoPorId(itemId)
+    if (!item) return
+    lista.addItem({ nome: item.nome, quantidade: 1, peso: item.pesoKg, notas: `${item.custoGp} po` })
+    if (item.combate) {
+      ataquesLista.addItem({
+        arma: item.nome,
+        bonus: '',
+        dano: item.combate.dano,
+        critico: item.combate.critico,
+        tipo: item.combate.tipo,
+        alcance: item.combate.alcance ?? '',
+        tamanho: item.combate.tamanho,
+        propriedadesEspeciais: item.combate.propriedadesEspeciais ?? '',
+      })
+    }
+  }
+
   function aplicarPacoteInicial() {
     if (!classe || pacoteAplicado) return
     const ids = PACOTES_INICIAIS[classe.nome] ?? []
@@ -42,7 +72,7 @@ export function EquipamentoStep({
       const item = itemEquipamentoPorId(itemId)
       if (!item || item.custoGp > gpRestante) continue
       gpRestante -= item.custoGp
-      lista.addItem({ nome: item.nome, quantidade: 1, peso: item.pesoKg, notas: `${item.custoGp} po` })
+      adquirirItem(itemId)
     }
     moedasAutosave.updateField('gp', gpRestante)
     setPacoteAplicado(true)
@@ -51,13 +81,17 @@ export function EquipamentoStep({
   function comprarItem(itemId: string) {
     const item = itemEquipamentoPorId(itemId)
     if (!item || item.custoGp > moedasAutosave.value.gp) return
-    lista.addItem({ nome: item.nome, quantidade: 1, peso: item.pesoKg, notas: `${item.custoGp} po` })
+    adquirirItem(itemId)
     moedasAutosave.updateField('gp', moedasAutosave.value.gp - item.custoGp)
   }
 
   function removerItemComprado(item: FichaItem) {
     const custo = Number(item.notas.match(/[\d.]+/)?.[0] ?? 0)
     lista.removeItem(item.id)
+    const ataqueCorrespondente = ataquesLista.items.find((a) => a.arma === item.nome)
+    if (ataqueCorrespondente) {
+      ataquesLista.removeItem(ataqueCorrespondente.id)
+    }
     moedasAutosave.updateField('gp', moedasAutosave.value.gp + custo)
   }
 
@@ -81,6 +115,7 @@ export function EquipamentoStep({
         <h2>Equipamento inicial</h2>
       </div>
       {lista.createError && <p role="alert">{lista.createError}</p>}
+      {ataquesLista.createError && <p role="alert">{ataquesLista.createError}</p>}
       {!classe && <p className="hint">Escolha uma classe na primeira etapa para saber seu ouro inicial.</p>}
 
       <p className="wizard-points-remaining">{moedasAutosave.value.gp} po disponíveis</p>

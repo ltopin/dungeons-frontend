@@ -598,7 +598,7 @@ describe('eventos de mesa', () => {
     await user.click(screen.getByRole('button', { name: 'Perícias' }))
     await user.click(screen.getByRole('button', { name: 'Rolar Furtividade' }))
 
-    expect(emitirRolagem).toHaveBeenCalledWith({ tipoItem: 'pericia', itemId: 'p1' })
+    expect(emitirRolagem).toHaveBeenCalledWith({ tipoItem: 'pericia', itemId: 'p1' }, undefined)
   })
 
   it('exibe no painel de eventos o resultado recebido do servidor, mesmo quando difere do total calculado na aba', async () => {
@@ -620,6 +620,7 @@ describe('eventos de mesa', () => {
             bonus: 10,
             resultado: 27,
             autorNomePersonagem: null,
+            pedidoEventoId: null,
           },
         },
       ],
@@ -677,6 +678,95 @@ describe('eventos de mesa', () => {
     await screen.findByDisplayValue('Aria Ventoclaro')
 
     expect(screen.queryByRole('button', { name: 'Pedir rolagem' })).not.toBeInTheDocument()
+  })
+
+  it('a sugestão de perícia no card de pedido de rolagem dispara a mesma rolagem que o botão da aba Perícias', async () => {
+    const emitirRolagem = vi.fn().mockResolvedValue({})
+    realtimeMock.useCampaignEvents.mockReturnValue({
+      eventos: [
+        {
+          id: 'ev-pedido-1',
+          campanhaId: 'camp-1',
+          autorContaId: 'mestre-1',
+          origem: 'jogador',
+          criadoEm: '2026-01-01T00:00:00.000Z',
+          tipo: 'pedido_rolagem',
+          payload: {
+            destinatarioContaId: 'conta-1',
+            destinatarioNomePersonagem: 'Aria Ventoclaro',
+            descricao: 'Teste de Furtividade',
+            npcNome: null,
+            notacao: null,
+          },
+        },
+      ],
+      status: 'conectado',
+      emitirRolagem,
+      pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
+    })
+
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+    await screen.findByDisplayValue('Aria Ventoclaro')
+
+    const eventosMesa = screen.getByRole('region', { name: 'Eventos de mesa' })
+    await user.click(within(eventosMesa).getByRole('button', { name: 'Rolar' }))
+
+    expect(emitirRolagem).toHaveBeenCalledWith({ tipoItem: 'pericia', itemId: 'p1' }, 'ev-pedido-1')
+  })
+
+  it('a sugestão de um teste de resistência no card de pedido de rolagem dispara emitirRolagem com a notação calculada da ficha', async () => {
+    const emitirRolagem = vi.fn().mockResolvedValue({})
+    realtimeMock.useCampaignEvents.mockReturnValue({
+      eventos: [
+        {
+          id: 'ev-pedido-2',
+          campanhaId: 'camp-1',
+          autorContaId: 'mestre-1',
+          origem: 'jogador',
+          criadoEm: '2026-01-01T00:00:00.000Z',
+          tipo: 'pedido_rolagem',
+          payload: {
+            destinatarioContaId: null,
+            destinatarioNomePersonagem: null,
+            descricao: 'Teste de Resistência de Vontade CD 15',
+            npcNome: null,
+            notacao: null,
+          },
+        },
+      ],
+      status: 'conectado',
+      emitirRolagem,
+      pedirRolagem: vi.fn(),
+      reconectar: vi.fn(),
+      rodada: null,
+      enviarResumoRodada: vi.fn(),
+      fecharRodada: vi.fn(),
+      narrarChegada: vi.fn().mockResolvedValue(undefined),
+    })
+
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/campanhas/camp-1/ficha']}>
+        <App />
+      </MemoryRouter>,
+    )
+    await screen.findByDisplayValue('Aria Ventoclaro')
+
+    const eventosMesa = screen.getByRole('region', { name: 'Eventos de mesa' })
+    await user.click(within(eventosMesa).getByRole('button', { name: 'Rolar' }))
+
+    // Fixture: vontadeBase 1 + mod WIS (10 -> +0) = 1d20+1.
+    expect(emitirRolagem).toHaveBeenCalledWith({ notacao: '1d20+1' }, 'ev-pedido-2')
   })
 })
 

@@ -19,17 +19,29 @@ export interface RolagemDadosPayload {
   bonus: number
   resultado: number
   autorNomePersonagem: string | null
+  /** Id do `pedido_rolagem` que esta rolagem responde — presente apenas quando emitida via `emitirRolagem(input, pedidoEventoId)`. */
+  pedidoEventoId: string | null
 }
 
 export interface PedidoRolagemPayload {
   destinatarioContaId: string | null
   destinatarioNomePersonagem: string | null
   descricao: string
+  /** Nome do NPC/monstro cujo turno gerou este pedido — presente só num pedido "pelo NPC" (ver `rolagem-npc-delegada-jogador`); ausente num pedido dirigido a jogador(es). */
+  npcNome: string | null
+  /** Notação já calculada pela IA para o pedido "pelo NPC" (ex.: `1d20+4`) — ausente nos demais pedidos, que dependem do catálogo/casamento do jogador. */
+  notacao: string | null
 }
 
 export interface NarracaoIaPayload {
   texto: string
   rodada: number
+  /** Id do `pedido_rolagem` respondido — presente só numa reação pontual (ver `pedido-rolagem-reacao-imediata`); ausente numa narração de rodada comum. */
+  pedidoEventoId: string | null
+  /** Conta de quem respondeu ao pedido, quando esta narração é uma reação pontual. */
+  respondenteContaId: string | null
+  /** Nome do personagem de quem respondeu, para atribuição clara em pedidos dirigidos à mesa toda. */
+  respondenteNomePersonagem: string | null
 }
 
 /** Narração de chegada individual de um personagem — ver `narracao-chegada`. Sem `rodada`: é anterior à mecânica de rodadas, não dispara o divisor de agrupamento do painel de eventos. */
@@ -89,7 +101,8 @@ interface EventoMesaWire {
   tipo:
     | 'rolagem_dados'
     | 'pedido_rolagem'
-    | 'narracao_ia'
+    /** Nome real no wire (ver `EventoMesa.ts` do `dungeons-api`) — mapeado para `narracao_ia` no tipo de app abaixo. */
+    | 'narracao'
     | 'narracao_chegada'
     | 'mudanca_modo'
     | 'resumo_rodada'
@@ -108,6 +121,7 @@ function mapRolagemDadosPayload(payload: Record<string, unknown>): RolagemDadosP
     bonus: Number(payload.bonus ?? 0),
     resultado: Number(payload.resultado ?? 0),
     autorNomePersonagem: (payload.autor_nome_personagem as string | null) ?? null,
+    pedidoEventoId: (payload.pedido_evento_id as string | null) ?? null,
   }
 }
 
@@ -116,6 +130,8 @@ function mapPedidoRolagemPayload(payload: Record<string, unknown>): PedidoRolage
     destinatarioContaId: (payload.destinatario_conta_id as string | null) ?? null,
     destinatarioNomePersonagem: (payload.destinatario_nome_personagem as string | null) ?? null,
     descricao: String(payload.descricao ?? ''),
+    npcNome: (payload.npc_nome as string | null) ?? null,
+    notacao: (payload.notacao as string | null) ?? null,
   }
 }
 
@@ -123,6 +139,9 @@ function mapNarracaoIaPayload(payload: Record<string, unknown>): NarracaoIaPaylo
   return {
     texto: String(payload.texto ?? ''),
     rodada: Number(payload.rodada ?? 0),
+    pedidoEventoId: (payload.pedido_evento_id as string | null) ?? null,
+    respondenteContaId: (payload.respondente_conta_id as string | null) ?? null,
+    respondenteNomePersonagem: (payload.respondente_nome_personagem as string | null) ?? null,
   }
 }
 
@@ -182,7 +201,7 @@ export function mapEventoFromWire(raw: EventoMesaWire): EventoMesa {
   switch (raw.tipo) {
     case 'pedido_rolagem':
       return { ...base, tipo: 'pedido_rolagem', payload: mapPedidoRolagemPayload(raw.payload) }
-    case 'narracao_ia':
+    case 'narracao':
       return { ...base, tipo: 'narracao_ia', payload: mapNarracaoIaPayload(raw.payload) }
     case 'narracao_chegada':
       return { ...base, tipo: 'narracao_chegada', payload: mapNarracaoChegadaPayload(raw.payload) }

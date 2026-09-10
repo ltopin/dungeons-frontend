@@ -5,7 +5,7 @@ Define o comportamento observável das telas de campanha: criação pelo mestre,
 ## Requirements
 
 ### Requirement: Criar campanha
-Um usuário autenticado SHALL poder criar uma campanha informando um nome, sendo levado à sua tela de campanha (dashboard de mestre) ao concluir. Opcionalmente, SHALL poder escolher um mundo próprio para vincular à campanha já na criação.
+Um usuário autenticado SHALL poder criar uma campanha informando um nome, sendo levado à sua tela de campanha (dashboard de mestre) ao concluir. Opcionalmente, SHALL poder escolher um mundo próprio para vincular à campanha já na criação. Alternativamente, o usuário SHALL poder escolher gerar a campanha via IA, o que leva ao wizard de criação de mundo (`ai-world-generation`) em vez de criar a campanha e o dashboard de mestre diretamente.
 
 #### Scenario: Criação bem-sucedida
 - **WHEN** o usuário preenche um nome válido e confirma a criação da campanha
@@ -22,6 +22,10 @@ Um usuário autenticado SHALL poder criar uma campanha informando um nome, sendo
 #### Scenario: Criação sem escolher mundo
 - **WHEN** o usuário não possui nenhum mundo criado, ou não seleciona nenhum
 - **THEN** a UI cria a campanha normalmente, sem exigir a escolha de um mundo
+
+#### Scenario: Usuário escolhe gerar campanha via IA
+- **WHEN** o usuário escolhe a opção de gerar campanha via IA em vez de preencher nome e mundo manualmente
+- **THEN** a UI navega para o wizard de criação de mundo, sem criar a campanha nem o dashboard de mestre diretamente
 
 ### Requirement: Descrição opcional ao criar campanha
 Um mestre SHALL poder informar uma descrição opcional ao criar uma campanha, além do nome.
@@ -91,7 +95,8 @@ No dashboard do mestre, o mestre da campanha SHALL poder vincular um mundo próp
 - **THEN** a UI substitui o vínculo pelo novo mundo escolhido
 
 ### Requirement: Acesso à história da campanha a partir do dashboard e da ficha
-O dashboard do mestre e a tela de ficha do jogador SHALL exibir um link de navegação para a tela "História da campanha" daquela campanha.
+
+O dashboard do mestre, a tela de ficha do jogador e o assistente de criação de personagem SHALL exibir um link de navegação para a tela "História da campanha" daquela campanha, quando a campanha tiver um mundo vinculado.
 
 #### Scenario: Mestre acessa a história pelo dashboard
 - **WHEN** o mestre está no dashboard de uma campanha
@@ -100,3 +105,26 @@ O dashboard do mestre e a tela de ficha do jogador SHALL exibir um link de naveg
 #### Scenario: Jogador acessa a história pela ficha
 - **WHEN** o jogador está na tela de edição da própria ficha
 - **THEN** a UI exibe um link visível para a história da campanha à qual a ficha pertence
+
+#### Scenario: Jogador acessa a história durante o assistente de criação
+- **WHEN** o jogador está em qualquer etapa do assistente de criação de personagem de uma campanha com mundo vinculado
+- **THEN** a UI exibe um link visível para a história dessa campanha
+
+### Requirement: Retornar à lista de campanhas a partir de uma campanha aberta
+A partir de qualquer tela dentro de uma campanha aberta — dashboard do mestre, ficha do jogador, trilha de criação de personagem, ou história da campanha — o usuário SHALL ter um link de navegação que o leva à lista de suas campanhas (`/campanhas`), independentemente do seu papel na campanha. Esse link SHALL levar sempre à lista, nunca de volta para uma rota que redirecione o usuário para a tela em que ele já estava.
+
+#### Scenario: Jogador volta à lista a partir da ficha
+- **WHEN** o jogador está no editor da própria ficha e aciona o link "Voltar às campanhas"
+- **THEN** a UI navega para `/campanhas`, exibindo a lista de campanhas do usuário
+
+#### Scenario: Jogador volta à lista a partir da trilha de criação de personagem
+- **WHEN** o jogador está na trilha de criação de personagem e aciona o link de retorno
+- **THEN** a UI navega para `/campanhas`
+
+#### Scenario: Jogador volta à lista a partir da história da campanha
+- **WHEN** o jogador está vendo a história da campanha e aciona o link de retorno
+- **THEN** a UI navega para `/campanhas`
+
+#### Scenario: Mestre volta à lista a partir do dashboard
+- **WHEN** o mestre está no dashboard de uma campanha e aciona o link "Voltar às campanhas"
+- **THEN** a UI navega para `/campanhas`

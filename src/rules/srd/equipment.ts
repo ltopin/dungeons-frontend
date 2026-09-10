@@ -1,9 +1,22 @@
+/** Dados mecânicos de uma arma, usados para pré-cadastrar o Ataque correspondente ao comprá-la (ver `compra-arma-cria-ataque`). */
+export interface CombateArmaSrd {
+  dano: string
+  critico: string
+  tipo: string
+  /** Alcance — só preenchido para armas de alcance; vazio para corpo a corpo. */
+  alcance?: string
+  tamanho: string
+  propriedadesEspeciais?: string
+}
+
 export interface ItemEquipamentoSrd {
   id: string
   nome: string
   categoria: 'arma' | 'armadura' | 'escudo' | 'geral'
   custoGp: number
   pesoKg: number
+  /** Presente só para armas com dados de combate cadastrados (ver `CombateArmaSrd`). */
+  combate?: CombateArmaSrd
 }
 
 /**
@@ -12,11 +25,68 @@ export interface ItemEquipamentoSrd {
  * só o suficiente para montar um personagem de 1º nível.
  */
 export const CATALOGO_EQUIPAMENTO: ItemEquipamentoSrd[] = [
-  { id: 'adaga', nome: 'Adaga', categoria: 'arma', custoGp: 2, pesoKg: 0.5 },
-  { id: 'espada_longa', nome: 'Espada longa', categoria: 'arma', custoGp: 15, pesoKg: 2 },
-  { id: 'machado_grande', nome: 'Machado grande', categoria: 'arma', custoGp: 20, pesoKg: 6 },
-  { id: 'arco_curto', nome: 'Arco curto', categoria: 'arma', custoGp: 30, pesoKg: 1 },
-  { id: 'cajado', nome: 'Cajado', categoria: 'arma', custoGp: 0, pesoKg: 2 },
+  {
+    id: 'adaga',
+    nome: 'Adaga',
+    categoria: 'arma',
+    custoGp: 2,
+    pesoKg: 0.5,
+    combate: {
+      dano: '1d4',
+      critico: '19-20/x2',
+      tipo: 'Perfuração/Corte',
+      alcance: '3m',
+      tamanho: 'Pequena',
+      propriedadesEspeciais: 'Arremessável, Sutil',
+    },
+  },
+  {
+    id: 'espada_longa',
+    nome: 'Espada longa',
+    categoria: 'arma',
+    custoGp: 15,
+    pesoKg: 2,
+    combate: { dano: '1d8', critico: '19-20/x2', tipo: 'Corte', tamanho: 'Média' },
+  },
+  {
+    id: 'machado_grande',
+    nome: 'Machado grande',
+    categoria: 'arma',
+    custoGp: 20,
+    pesoKg: 6,
+    combate: { dano: '1d12', critico: 'x3', tipo: 'Corte', tamanho: 'Grande', propriedadesEspeciais: 'Duas mãos' },
+  },
+  {
+    id: 'machado_guerra',
+    nome: 'Machado de guerra',
+    categoria: 'arma',
+    custoGp: 10,
+    pesoKg: 3,
+    combate: { dano: '1d8', critico: 'x3', tipo: 'Corte', tamanho: 'Média' },
+  },
+  {
+    id: 'arco_curto',
+    nome: 'Arco curto',
+    categoria: 'arma',
+    custoGp: 30,
+    pesoKg: 1,
+    combate: {
+      dano: '1d6',
+      critico: 'x3',
+      tipo: 'Perfuração',
+      alcance: '18m',
+      tamanho: 'Média',
+      propriedadesEspeciais: 'Duas mãos',
+    },
+  },
+  {
+    id: 'cajado',
+    nome: 'Cajado',
+    categoria: 'arma',
+    custoGp: 0,
+    pesoKg: 2,
+    combate: { dano: '1d6', critico: 'x2', tipo: 'Concussão', tamanho: 'Média', propriedadesEspeciais: 'Arma dupla (1d6/1d6)' },
+  },
   { id: 'armadura_couro', nome: 'Armadura de couro', categoria: 'armadura', custoGp: 10, pesoKg: 7.5 },
   { id: 'cota_de_malha', nome: 'Cota de malha', categoria: 'armadura', custoGp: 150, pesoKg: 20 },
   { id: 'escudo_pequeno_madeira', nome: 'Escudo pequeno de madeira', categoria: 'escudo', custoGp: 3, pesoKg: 2.5 },

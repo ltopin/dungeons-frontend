@@ -21,6 +21,7 @@ import { useCampaignEvents } from '../realtime/useCampaignEvents'
 import { EventosMesaPanel } from '../realtime/EventosMesaPanel'
 import { RolagemLivreForm } from '../realtime/RolagemLivreForm'
 import { RodadaPanel } from '../realtime/RodadaPanel'
+import { montarCatalogoRolagem, type CatalogoRolagemEntry } from '../realtime/catalogoRolagem'
 import type { TipoItemFicha } from '../realtime/types'
 import { AssumirMestreConfirm } from './AssumirMestreConfirm'
 import { HandoffResumoView } from './HandoffResumoView'
@@ -192,9 +193,23 @@ export function CharacterSheetPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- guardado pelo ref por fichaId; não deve redisparar por causa de identidade de narrarChegada
   }, [ficha, mestre, status, chegadaNarrada])
 
-  function rolarItem(tipoItem: TipoItemFicha, itemId: string): void {
+  function rolarItem(tipoItem: TipoItemFicha, itemId: string, pedidoEventoId?: string): void {
     setErroRolagem(null)
-    emitirRolagem({ tipoItem, itemId }).catch(() => setErroRolagem('Não foi possível enviar a rolagem.'))
+    emitirRolagem({ tipoItem, itemId }, pedidoEventoId).catch(() =>
+      setErroRolagem('Não foi possível enviar a rolagem.'),
+    )
+  }
+
+  /** `pedidoEventoId` presente = esta rolagem responde a um `pedido_rolagem` específico do card — ver `pedido-rolagem-reacao-imediata`. */
+  function rolarEntradaCatalogo(entrada: CatalogoRolagemEntry, pedidoEventoId: string): void {
+    if (entrada.tipo === 'item') {
+      rolarItem(entrada.tipoItem, entrada.itemId, pedidoEventoId)
+      return
+    }
+    setErroRolagem(null)
+    emitirRolagem({ notacao: entrada.notacao }, pedidoEventoId).catch(() =>
+      setErroRolagem('Não foi possível enviar a rolagem.'),
+    )
   }
 
   if (erro) return <p role="alert">{erro}</p>
@@ -220,6 +235,7 @@ export function CharacterSheetPage() {
     )
   }
 
+  const catalogoRolagem = montarCatalogoRolagem(ficha)
   const contaAtualId = getContaAtual()?.id
   const bloqueadoPorTurno =
     rodada?.modo === 'combate' && rodada.turnoAtualContaId !== null && rodada.turnoAtualContaId !== contaAtualId
@@ -364,7 +380,13 @@ export function CharacterSheetPage() {
           disabled={status === 'indisponivel'}
         />
       )}
-      <EventosMesaPanel eventos={eventos} status={status} onReconectar={reconectar} />
+      <EventosMesaPanel
+        eventos={eventos}
+        status={status}
+        onReconectar={reconectar}
+        catalogoRolagem={catalogoRolagem}
+        onRolar={rolarEntradaCatalogo}
+      />
       <RolagemLivreForm
         onRolar={(notacao) => {
           setErroRolagem(null)

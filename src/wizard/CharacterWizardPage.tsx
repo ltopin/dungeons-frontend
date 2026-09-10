@@ -217,9 +217,11 @@ export function CharacterWizardPage() {
               fichaId={ficha.id}
               moedas={ficha.moedas}
               itens={ficha.itens}
+              ataques={ficha.ataques}
               classe={classe}
               onMoedasSaved={atualizarSecaoLocal('moedas')}
               onItensChange={atualizarSecaoLocal('itens')}
+              onAtaquesChange={atualizarSecaoLocal('ataques')}
               onConcluir={() => marcarConcluido('equipamento', proximoPasso('equipamento'))}
             />
           )}
