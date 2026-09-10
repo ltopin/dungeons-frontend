@@ -1085,10 +1085,16 @@ main {
   gap: 2px;
 }
 
+.ficha-sheet .eventos-mesa__list li strong {
+  color: var(--parchment);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
 .ficha-sheet .eventos-mesa__detalhe {
-  color: var(--text-dim);
-  font-size: 14px;
-  line-height: 1.6;
+  color: #d9c9a3;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .ficha-sheet .eventos-mesa__sugestao {
@@ -1103,7 +1109,7 @@ main {
 
 .ficha-sheet .eventos-mesa__sugestao-valor {
   color: var(--gold-bright);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -1166,10 +1172,16 @@ main {
   gap: 2px;
 }
 
+.campaigns-screen .eventos-mesa__list li strong {
+  color: var(--parchment);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
 .campaigns-screen .eventos-mesa__detalhe {
-  color: var(--text-dim);
-  font-size: 14px;
-  line-height: 1.6;
+  color: #d9c9a3;
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 /* Botão de rolagem, reaproveitado do tema da ficha para o pedido de rolagem do mestre */
@@ -1944,8 +1956,8 @@ main {
 }
 
 .ficha-sheet .eventos-mesa__reacao-contexto {
-  color: var(--text-dim);
-  font-size: 12px;
+  color: #d9c9a3;
+  font-size: 13px;
   font-style: italic;
 }
 
